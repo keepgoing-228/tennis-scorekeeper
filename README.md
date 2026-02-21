@@ -1,73 +1,52 @@
-# React + TypeScript + Vite
+# Tennis Scorekeeper
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A client-side tennis scoring app with event-sourced state management. Track matches, annotate points with loss reasons, and review match history with per-match statistics.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Live scoring** with large tap targets for quick point entry
+- **Full tennis rules** including deuce/advantage, tiebreaks, and configurable best-of (1/3/5)
+- **Practice tiebreak mode** for standalone first-to-7 tiebreaks
+- **Undo/redo** via event sourcing (append-only event log with full replay)
+- **Point annotations** — optionally tag each point with a loss reason (double fault, ace, forehand/backhand error, volley error, out, net, winner)
+- **Match history** with expandable per-match statistics
+- **Offline-first** — all data stored locally in IndexedDB via Dexie
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+- React 19 + TypeScript
+- Vite
+- Tailwind CSS
+- Dexie (IndexedDB)
+- React Router
+- Vitest
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+bun install
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Command | Description |
+|---------|-------------|
+| `bun run dev` | Start dev server |
+| `bun run build` | Type-check and build for production |
+| `bun run test` | Run tests |
+| `bun run test:watch` | Run tests in watch mode |
+| `bun run lint` | Lint with ESLint |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Architecture
+
+The app uses **event sourcing** — all scoring actions are persisted as immutable events in IndexedDB. Match state is computed by replaying the effective event stream. Undo appends an `UNDO` event rather than mutating history.
+
+```
+src/
+├── domain/        # Pure scoring logic and types (no I/O)
+├── storage/       # IndexedDB persistence (Dexie)
+└── ui/
+    ├── pages/     # NewMatch, Scoring, MatchHistory
+    └── components/# Scoreboard, ScoreButton, AnnotationBar
 ```
