@@ -206,3 +206,48 @@ describe("tiebreak", () => {
     expect(state.setsWonA).toBe(1);
   });
 });
+
+function winSet_helper(state: MatchState, team: TeamSide): MatchState {
+  return winGames(state, team, 6);
+}
+
+describe("match win", () => {
+  it("wins best-of-3 match after 2 sets", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winSet_helper(state, "A");
+    state = winSet_helper(state, "A");
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("A");
+    expect(state.setsWonA).toBe(2);
+  });
+
+  it("wins best-of-1 match after 1 set", () => {
+    const bo1: Ruleset = { bestOf: 1, tiebreak: "7pt", matchType: "singles" };
+    let state = initMatchState("m1", bo1, { A: teamA, B: teamB }, "A");
+    state = winSet_helper(state, "B");
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("B");
+  });
+
+  it("wins best-of-5 match after 3 sets", () => {
+    const bo5: Ruleset = { bestOf: 5, tiebreak: "7pt", matchType: "singles" };
+    let state = initMatchState("m1", bo5, { A: teamA, B: teamB }, "A");
+    state = winSet_helper(state, "A");
+    state = winSet_helper(state, "B");
+    state = winSet_helper(state, "A");
+    state = winSet_helper(state, "A");
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("A");
+    expect(state.setsWonA).toBe(3);
+    expect(state.setsWonB).toBe(1);
+  });
+
+  it("ignores points after match is finished", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winSet_helper(state, "A");
+    state = winSet_helper(state, "A");
+    const finishedState = state;
+    state = applyPointWon(state, "B");
+    expect(state).toEqual(finishedState);
+  });
+});
