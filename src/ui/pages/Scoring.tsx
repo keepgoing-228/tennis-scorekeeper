@@ -13,6 +13,11 @@ export default function Scoring() {
   const [allEvents, setAllEvents] = useState<MatchEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const canUndo = useMemo(
+    () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
+    [allEvents],
+  );
+
   // Load match state from events on mount
   useEffect(() => {
     if (!id) return;
@@ -110,10 +115,6 @@ export default function Scoring() {
   const isFinished = matchState.status === "finished";
   const teamAName = matchState.teams.A.players.map((p) => p.displayName).join(" / ");
   const teamBName = matchState.teams.B.players.map((p) => p.displayName).join(" / ");
-  const canUndo = useMemo(
-    () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
-    [allEvents],
-  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
