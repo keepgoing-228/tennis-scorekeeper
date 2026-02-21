@@ -1,4 +1,4 @@
-import type { GameState, MatchState, NormalGameState, PointScore, Ruleset, Team, TeamSide, MatchEvent } from "./types.ts";
+import type { GameState, MatchState, NormalGameState, PointScore, Ruleset, Team, TeamSide, MatchEvent, PointLossReason } from "./types.ts";
 
 const POINT_PROGRESSION: Record<number, PointScore> = { 0: 15, 15: 30, 30: 40 };
 
@@ -220,7 +220,7 @@ export function getEffectiveEvents(events: MatchEvent[]): MatchEvent[] {
   }
 
   return events.filter(
-    (e) => e.type !== "UNDO" && e.type !== "REDO" && !undoneIds.has(e.eventId)
+    (e) => e.type !== "UNDO" && e.type !== "REDO" && e.type !== "POINT_ANNOTATED" && !undoneIds.has(e.eventId)
   );
 }
 
@@ -247,4 +247,61 @@ export function replay(events: MatchEvent[], startingState?: MatchState): MatchS
   }
 
   return state;
+}
+
+export type TeamStats = {
+  totalPointsWon: number;
+  unannotated: number;
+} & Record<PointLossReason, number>;
+
+export type MatchStats = {
+  A: TeamStats;
+  B: TeamStats;
+};
+
+function emptyTeamStats(): TeamStats {
+  return {
+    totalPointsWon: 0,
+    unannotated: 0,
+    DOUBLE_FAULT: 0,
+    ACE: 0,
+    FOREHAND_ERROR: 0,
+    BACKHAND_ERROR: 0,
+    VOLLEY_ERROR: 0,
+    OUT_OF_BOUNDS: 0,
+    NET_ERROR: 0,
+    WINNER: 0,
+  };
+}
+
+export function computeMatchStats(events: MatchEvent[]): MatchStats {
+  const effective = getEffectiveEvents(events);
+  const effectiveIds = new Set(effective.map(e => e.eventId));
+
+  const stats: MatchStats = { A: emptyTeamStats(), B: emptyTeamStats() };
+
+  // Build annotation map: pointEventId -> reason
+  const annotations = new Map<string, PointLossReason>();
+  for (const event of events) {
+    if (event.type === "POINT_ANNOTATED" && effectiveIds.has(event.payload.pointEventId)) {
+      annotations.set(event.payload.pointEventId, event.payload.reason);
+    }
+  }
+
+  // Count points and apply annotations
+  for (const event of effective) {
+    if (event.type === "POINT_WON") {
+      const team = event.payload.team;
+      stats[team].totalPointsWon += 1;
+
+      const reason = annotations.get(event.eventId);
+      if (reason) {
+        stats[team][reason] += 1;
+      } else {
+        stats[team].unannotated += 1;
+      }
+    }
+  }
+
+  return stats;
 }
