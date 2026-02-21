@@ -184,7 +184,7 @@ export default function Scoring() {
       </div>
 
       {/* Annotation bar */}
-      {lastPointEventId && !isLastPointAnnotated && !isFinished && (
+      {lastPointEventId && !isLastPointAnnotated && (
         <AnnotationBar onSelect={handleAnnotate} />
       )}
 
