@@ -1,4 +1,4 @@
-import type { GameState, MatchState, NormalGameState, PointScore, Ruleset, Team, TeamSide } from "./types.ts";
+import type { GameState, MatchState, NormalGameState, PointScore, Ruleset, Team, TeamSide, MatchEvent } from "./types.ts";
 
 const POINT_PROGRESSION: Record<number, PointScore> = { 0: 15, 15: 30, 30: 40 };
 
@@ -193,4 +193,45 @@ export function applyPointWon(state: MatchState, team: TeamSide): MatchState {
   }
 
   return scoreNormalGame(state, game, team);
+}
+
+export function getEffectiveEvents(events: MatchEvent[]): MatchEvent[] {
+  const undoneIds = new Set<string>();
+
+  for (const event of events) {
+    if (event.type === "UNDO") {
+      undoneIds.add(event.payload.targetEventId);
+    } else if (event.type === "REDO") {
+      undoneIds.delete(event.payload.targetEventId);
+    }
+  }
+
+  return events.filter(
+    (e) => e.type !== "UNDO" && e.type !== "REDO" && !undoneIds.has(e.eventId)
+  );
+}
+
+export function replay(events: MatchEvent[], startingState?: MatchState): MatchState {
+  const effective = startingState ? events : getEffectiveEvents(events);
+
+  let state = startingState;
+
+  for (const event of effective) {
+    if (event.type === "MATCH_CREATED") {
+      state = initMatchState(
+        event.matchId,
+        event.payload.ruleset,
+        event.payload.teams,
+        event.payload.initialServer,
+      );
+    } else if (event.type === "POINT_WON" && state) {
+      state = applyPointWon(state, event.payload.team);
+    }
+  }
+
+  if (!state) {
+    throw new Error("No MATCH_CREATED event found and no starting state provided");
+  }
+
+  return state;
 }

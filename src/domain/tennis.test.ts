@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { initMatchState, applyPointWon } from "./tennis.ts";
-import type { Ruleset, Team, MatchState, TeamSide } from "./types.ts";
+import { initMatchState, applyPointWon, getEffectiveEvents, replay } from "./tennis.ts";
+import type { Ruleset, Team, MatchState, TeamSide, PointWonEvent, MatchCreatedEvent, UndoEvent, MatchEvent } from "./types.ts";
 
 const defaultRuleset: Ruleset = {
   bestOf: 3,
@@ -249,5 +249,95 @@ describe("match win", () => {
     const finishedState = state;
     state = applyPointWon(state, "B");
     expect(state).toEqual(finishedState);
+  });
+});
+
+function makeMatchCreatedEvent(matchId: string, ruleset: Ruleset, teams: { A: Team; B: Team }, server: TeamSide): MatchCreatedEvent {
+  return {
+    eventId: "evt-0",
+    matchId,
+    createdAt: new Date().toISOString(),
+    seq: 0,
+    type: "MATCH_CREATED",
+    payload: { ruleset, teams, initialServer: server },
+  };
+}
+
+function makePointWonEvent(matchId: string, seq: number, team: TeamSide): PointWonEvent {
+  return {
+    eventId: `evt-${seq}`,
+    matchId,
+    createdAt: new Date().toISOString(),
+    seq,
+    type: "POINT_WON",
+    payload: { team },
+  };
+}
+
+function makeUndoEvent(matchId: string, seq: number, targetEventId: string): UndoEvent {
+  return {
+    eventId: `evt-${seq}`,
+    matchId,
+    createdAt: new Date().toISOString(),
+    seq,
+    type: "UNDO",
+    payload: { targetEventId },
+  };
+}
+
+describe("getEffectiveEvents", () => {
+  it("returns all events when no undo", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
+      makePointWonEvent("m1", 1, "A"),
+      makePointWonEvent("m1", 2, "B"),
+    ];
+    const effective = getEffectiveEvents(events);
+    expect(effective).toHaveLength(3);
+  });
+
+  it("filters out undone events", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
+      makePointWonEvent("m1", 1, "A"),
+      makePointWonEvent("m1", 2, "B"),
+      makeUndoEvent("m1", 3, "evt-2"),
+    ];
+    const effective = getEffectiveEvents(events);
+    expect(effective).toHaveLength(2);
+    expect(effective.every(e => e.type !== "UNDO")).toBe(true);
+    expect(effective.find(e => e.eventId === "evt-2")).toBeUndefined();
+  });
+});
+
+describe("replay", () => {
+  it("replays events to produce correct state", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
+      makePointWonEvent("m1", 1, "A"),
+      makePointWonEvent("m1", 2, "A"),
+    ];
+    const state = replay(events);
+    expect(state.sets[0].game).toMatchObject({ pointsA: 30, pointsB: 0 });
+  });
+
+  it("replays with undo correctly", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
+      makePointWonEvent("m1", 1, "A"),
+      makePointWonEvent("m1", 2, "A"),
+      makeUndoEvent("m1", 3, "evt-2"),
+    ];
+    const state = replay(events);
+    expect(state.sets[0].game).toMatchObject({ pointsA: 15, pointsB: 0 });
+  });
+
+  it("accepts optional starting state for future snapshot support", () => {
+    const startingState = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    const events: MatchEvent[] = [
+      makePointWonEvent("m1", 1, "B"),
+    ];
+    const state = replay(events, startingState);
+    expect(state.sets[0].game).toMatchObject({ pointsA: 0, pointsB: 15 });
   });
 });
