@@ -97,9 +97,30 @@ export type MatchEndedEvent = BaseEvent & {
   payload: Record<string, never>;
 };
 
+// --- Point Annotation ---
+
+export type PointLossReason =
+  | "DOUBLE_FAULT"
+  | "ACE"
+  | "FOREHAND_ERROR"
+  | "BACKHAND_ERROR"
+  | "VOLLEY_ERROR"
+  | "OUT_OF_BOUNDS"
+  | "NET_ERROR"
+  | "WINNER";
+
+export type PointAnnotatedEvent = BaseEvent & {
+  type: "POINT_ANNOTATED";
+  payload: {
+    pointEventId: string;
+    reason: PointLossReason;
+  };
+};
+
 export type MatchEvent =
   | MatchCreatedEvent
   | PointWonEvent
   | UndoEvent
   | RedoEvent
-  | MatchEndedEvent;
+  | MatchEndedEvent
+  | PointAnnotatedEvent;
