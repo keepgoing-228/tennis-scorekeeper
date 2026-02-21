@@ -114,6 +114,11 @@ function scoreNormalGame(state: MatchState, game: NormalGameState, team: TeamSid
       // Win the game
       return winGame(state, team);
     }
+    if (otherPoints === "AD") {
+      // Opponent had advantage → back to deuce
+      const newGame: NormalGameState = { ...game, pointsA: 40, pointsB: 40, deuce: true };
+      return updateGame(state, newGame);
+    }
     if (otherPoints === 40) {
       // Deuce → Advantage
       const newGame: NormalGameState = { ...game, deuce: true, [scorerKey]: "AD" as PointScore };
@@ -121,12 +126,6 @@ function scoreNormalGame(state: MatchState, game: NormalGameState, team: TeamSid
     }
     // 40 vs < 40 → win the game
     return winGame(state, team);
-  }
-
-  // Opponent has AD → back to deuce
-  if (otherPoints === "AD") {
-    const newGame: NormalGameState = { ...game, pointsA: 40, pointsB: 40, deuce: true };
-    return updateGame(state, newGame);
   }
 
   // Normal progression: 0→15→30→40

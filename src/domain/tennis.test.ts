@@ -70,3 +70,46 @@ describe("basic point scoring", () => {
     expect(state.sets[0].game).toEqual({ kind: "normal", pointsA: 0, pointsB: 0, deuce: false });
   });
 });
+
+describe("deuce and advantage", () => {
+  it("enters deuce at 40-40", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = scorePoints(state, ["A", "A", "A", "B", "B", "B"]);
+    expect(state.sets[0].game).toMatchObject({ pointsA: 40, pointsB: 40, deuce: true });
+  });
+
+  it("advantage to scorer from deuce", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = scorePoints(state, ["A", "A", "A", "B", "B", "B"]);
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game).toMatchObject({ pointsA: "AD", pointsB: 40, deuce: true });
+  });
+
+  it("back to deuce when advantage is lost", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = scorePoints(state, ["A", "A", "A", "B", "B", "B"]);
+    state = applyPointWon(state, "A");
+    state = applyPointWon(state, "B");
+    expect(state.sets[0].game).toMatchObject({ pointsA: 40, pointsB: 40, deuce: true });
+  });
+
+  it("wins game from advantage", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = scorePoints(state, ["A", "A", "A", "B", "B", "B"]);
+    state = applyPointWon(state, "B");
+    state = applyPointWon(state, "B");
+    expect(state.sets[0].gamesB).toBe(1);
+    expect(state.sets[0].game).toEqual({ kind: "normal", pointsA: 0, pointsB: 0, deuce: false });
+  });
+});
+
+describe("server rotation", () => {
+  it("alternates server after each game", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    expect(state.server).toBe("A");
+    state = scorePoints(state, ["A", "A", "A", "A"]);
+    expect(state.server).toBe("B");
+    state = scorePoints(state, ["B", "B", "B", "B"]);
+    expect(state.server).toBe("A");
+  });
+});
