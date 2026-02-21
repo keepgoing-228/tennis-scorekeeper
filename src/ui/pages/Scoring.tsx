@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide } from "../../domain/types.ts";
+import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide, PointAnnotatedEvent, PointLossReason } from "../../domain/types.ts";
 import { applyPointWon, replay, getEffectiveEvents } from "../../domain/tennis.ts";
 import { getMatchEvents, appendEvent, getNextSeq } from "../../storage/eventRepo.ts";
 import { updateMatchStatus } from "../../storage/matchRepo.ts";
 import Scoreboard from "../components/Scoreboard.tsx";
 import ScoreButton from "../components/ScoreButton.tsx";
+import AnnotationBar from "../components/AnnotationBar.tsx";
 
 export default function Scoring() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,19 @@ export default function Scoring() {
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
     [allEvents],
   );
+
+  const lastPointEventId = useMemo(() => {
+    const effective = getEffectiveEvents(allEvents);
+    const lastPoint = [...effective].reverse().find((e) => e.type === "POINT_WON");
+    return lastPoint?.eventId ?? null;
+  }, [allEvents]);
+
+  const isLastPointAnnotated = useMemo(() => {
+    if (!lastPointEventId) return true;
+    return allEvents.some(
+      (e) => e.type === "POINT_ANNOTATED" && e.payload.pointEventId === lastPointEventId
+    );
+  }, [allEvents, lastPointEventId]);
 
   // Load match state from events on mount
   useEffect(() => {
@@ -96,6 +110,23 @@ export default function Scoring() {
     }
   }
 
+  async function handleAnnotate(reason: PointLossReason) {
+    if (!id || !lastPointEventId || isLastPointAnnotated) return;
+
+    const seq = await getNextSeq(id);
+    const event: PointAnnotatedEvent = {
+      eventId: crypto.randomUUID(),
+      matchId: id,
+      createdAt: new Date().toISOString(),
+      seq,
+      type: "POINT_ANNOTATED",
+      payload: { pointEventId: lastPointEventId, reason },
+    };
+
+    await appendEvent(event);
+    setAllEvents((prev) => [...prev, event]);
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
@@ -151,6 +182,11 @@ export default function Scoring() {
           onScore={() => handleScore("B")}
         />
       </div>
+
+      {/* Annotation bar */}
+      {lastPointEventId && !isLastPointAnnotated && !isFinished && (
+        <AnnotationBar onSelect={handleAnnotate} />
+      )}
 
       {/* Bottom action buttons */}
       <div className="flex">
