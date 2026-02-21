@@ -113,3 +113,96 @@ describe("server rotation", () => {
     expect(state.server).toBe("A");
   });
 });
+
+function winGames(state: MatchState, team: TeamSide, count: number): MatchState {
+  for (let i = 0; i < count; i++) {
+    state = scorePoints(state, [team, team, team, team]);
+  }
+  return state;
+}
+
+describe("set win", () => {
+  it("wins a set at 6-0", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 6);
+    expect(state.setsWonA).toBe(1);
+    expect(state.currentSetIndex).toBe(1);
+    expect(state.sets).toHaveLength(2);
+  });
+
+  it("does not win set at 6-5 (needs 2-game margin)", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 5);
+    state = winGames(state, "B", 5);
+    state = winGames(state, "A", 1);
+    expect(state.setsWonA).toBe(0);
+    expect(state.sets[0].gamesA).toBe(6);
+    expect(state.sets[0].gamesB).toBe(5);
+  });
+
+  it("enters tiebreak at 6-6 when tiebreak enabled", () => {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 5);
+    state = winGames(state, "B", 5);
+    state = winGames(state, "A", 1);
+    state = winGames(state, "B", 1);
+    expect(state.sets[0].game.kind).toBe("tiebreak");
+    if (state.sets[0].game.kind === "tiebreak") {
+      expect(state.sets[0].game.tbA).toBe(0);
+      expect(state.sets[0].game.tbB).toBe(0);
+    }
+  });
+
+  it("continues to 7-5 when no tiebreak (advantage set)", () => {
+    const noTbRuleset: Ruleset = { bestOf: 3, tiebreak: "none", matchType: "singles" };
+    let state = initMatchState("m1", noTbRuleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 5);
+    state = winGames(state, "B", 5);
+    state = winGames(state, "A", 2);
+    expect(state.setsWonA).toBe(1);
+  });
+});
+
+describe("tiebreak", () => {
+  function reachTiebreak(): MatchState {
+    let state = initMatchState("m1", defaultRuleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 5);
+    state = winGames(state, "B", 5);
+    state = winGames(state, "A", 1);
+    state = winGames(state, "B", 1);
+    return state;
+  }
+
+  it("scores tiebreak points", () => {
+    let state = reachTiebreak();
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game.kind).toBe("tiebreak");
+    if (state.sets[0].game.kind === "tiebreak") {
+      expect(state.sets[0].game.tbA).toBe(1);
+      expect(state.sets[0].game.tbB).toBe(0);
+    }
+  });
+
+  it("wins tiebreak at 7-0", () => {
+    let state = reachTiebreak();
+    for (let i = 0; i < 7; i++) {
+      state = applyPointWon(state, "A");
+    }
+    expect(state.setsWonA).toBe(1);
+    expect(state.sets[0].gamesA).toBe(7);
+    expect(state.sets[0].gamesB).toBe(6);
+  });
+
+  it("requires 2-point margin in tiebreak", () => {
+    let state = reachTiebreak();
+    for (let i = 0; i < 6; i++) {
+      state = applyPointWon(state, "A");
+      state = applyPointWon(state, "B");
+    }
+    expect(state.sets[0].game.kind).toBe("tiebreak");
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game.kind).toBe("tiebreak");
+    state = applyPointWon(state, "A");
+    expect(state.setsWonA).toBe(1);
+  });
+});
