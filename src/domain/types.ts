@@ -1,6 +1,6 @@
 // --- Ruleset ---
 
-export type BestOf = 1 | 3 | 5;
+export type BestOf = 1 | 3 | 5 | "practice";
 
 export type Ruleset = {
   bestOf: BestOf;

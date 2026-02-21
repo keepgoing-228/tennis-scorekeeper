@@ -6,6 +6,10 @@ function freshGame(): GameState {
   return { kind: "normal", pointsA: 0, pointsB: 0, deuce: false };
 }
 
+function freshTiebreak(): GameState {
+  return { kind: "tiebreak", tbA: 0, tbB: 0, target: 7 };
+}
+
 function freshSet() {
   return { gamesA: 0, gamesB: 0, game: freshGame() };
 }
@@ -20,7 +24,7 @@ export function initMatchState(
     matchId,
     ruleset,
     teams,
-    sets: [freshSet()],
+    sets: [{ gamesA: 0, gamesB: 0, game: ruleset.bestOf === "practice" ? freshTiebreak() : freshGame() }],
     currentSetIndex: 0,
     setsWonA: 0,
     setsWonB: 0,
@@ -34,6 +38,7 @@ function otherSide(side: TeamSide): TeamSide {
 }
 
 function setsNeeded(ruleset: Ruleset): number {
+  if (ruleset.bestOf === "practice") return 1;
   return Math.ceil(ruleset.bestOf / 2);
 }
 
@@ -49,6 +54,8 @@ function winGame(state: MatchState, winner: TeamSide): MatchState {
 
   // Check for set win
   const { gamesA, gamesB } = currentSet;
+
+  // first state: tiebreak is enabled and both players have 6 games
   const needsTiebreak = state.ruleset.tiebreak === "7pt" && gamesA === 6 && gamesB === 6;
 
   if (needsTiebreak) {
@@ -58,6 +65,7 @@ function winGame(state: MatchState, winner: TeamSide): MatchState {
     return { ...state, sets, server: otherSide(state.server) };
   }
 
+  // second state: one player has 6 games and more than 2 games ahead
   const setWon =
     (gamesA >= 6 || gamesB >= 6) &&
     Math.abs(gamesA - gamesB) >= 2;
@@ -68,7 +76,7 @@ function winGame(state: MatchState, winner: TeamSide): MatchState {
     return winSet(state, sets, winner);
   }
 
-  // Game won but set continues
+  // third state: someone has won the game but the set continues
   currentSet.game = freshGame();
   sets[state.currentSetIndex] = currentSet;
   return { ...state, sets, server: otherSide(state.server) };
@@ -153,7 +161,12 @@ function scoreTiebreak(state: MatchState, team: TeamSide): MatchState {
   const totalPoints = newTbA + newTbB;
 
   // Check for tiebreak win: reach target with 2-point margin
-  if ((newTbA >= game.target || newTbB >= game.target) && Math.abs(newTbA - newTbB) >= 2) {
+  const isPractice = state.ruleset.bestOf === "practice";
+  const tiebreakWon = isPractice
+    ? (newTbA >= game.target || newTbB >= game.target)
+    : (newTbA >= game.target || newTbB >= game.target) && Math.abs(newTbA - newTbB) >= 2;
+
+  if (tiebreakWon) {
     const winner: TeamSide = newTbA > newTbB ? "A" : "B";
     if (winner === "A") {
       currentSet.gamesA += 1;

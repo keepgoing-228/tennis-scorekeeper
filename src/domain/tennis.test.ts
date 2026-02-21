@@ -341,3 +341,67 @@ describe("replay", () => {
     expect(state.sets[0].game).toMatchObject({ pointsA: 0, pointsB: 15 });
   });
 });
+
+const practiceRuleset: Ruleset = {
+  bestOf: "practice",
+  tiebreak: "7pt",
+  matchType: "singles",
+};
+
+describe("practice tiebreak mode", () => {
+  it("starts in tiebreak state", () => {
+    const state = initMatchState("m1", practiceRuleset, { A: teamA, B: teamB }, "A");
+    expect(state.sets[0].game.kind).toBe("tiebreak");
+    if (state.sets[0].game.kind === "tiebreak") {
+      expect(state.sets[0].game.tbA).toBe(0);
+      expect(state.sets[0].game.tbB).toBe(0);
+      expect(state.sets[0].game.target).toBe(7);
+    }
+  });
+
+  it("scores tiebreak points", () => {
+    let state = initMatchState("m1", practiceRuleset, { A: teamA, B: teamB }, "A");
+    state = applyPointWon(state, "A");
+    if (state.sets[0].game.kind === "tiebreak") {
+      expect(state.sets[0].game.tbA).toBe(1);
+      expect(state.sets[0].game.tbB).toBe(0);
+    }
+  });
+
+  it("wins at exactly 7 points with no margin required (7-6)", () => {
+    let state = initMatchState("m1", practiceRuleset, { A: teamA, B: teamB }, "A");
+    // Score to 6-6
+    for (let i = 0; i < 6; i++) {
+      state = applyPointWon(state, "A");
+      state = applyPointWon(state, "B");
+    }
+    // A scores 7th point → 7-6 → A wins (no margin needed)
+    state = applyPointWon(state, "A");
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("A");
+  });
+
+  it("does not create a second set after practice tiebreak", () => {
+    let state = initMatchState("m1", practiceRuleset, { A: teamA, B: teamB }, "A");
+    for (let i = 0; i < 7; i++) {
+      state = applyPointWon(state, "B");
+    }
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("B");
+    expect(state.sets).toHaveLength(1);
+  });
+
+  it("tracks server rotation in practice tiebreak", () => {
+    let state = initMatchState("m1", practiceRuleset, { A: teamA, B: teamB }, "A");
+    expect(state.server).toBe("A");
+    // After 1st point, server changes
+    state = applyPointWon(state, "A");
+    expect(state.server).toBe("B");
+    // After 2nd point, no change
+    state = applyPointWon(state, "A");
+    expect(state.server).toBe("B");
+    // After 3rd point, server changes
+    state = applyPointWon(state, "A");
+    expect(state.server).toBe("A");
+  });
+});
