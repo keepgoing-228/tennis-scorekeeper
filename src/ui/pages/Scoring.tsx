@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide } from "../../domain/types.ts";
 import { applyPointWon, replay, getEffectiveEvents } from "../../domain/tennis.ts";
 import { getMatchEvents, appendEvent, getNextSeq } from "../../storage/eventRepo.ts";
@@ -9,6 +9,7 @@ import ScoreButton from "../components/ScoreButton.tsx";
 
 export default function Scoring() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [allEvents, setAllEvents] = useState<MatchEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,14 +152,27 @@ export default function Scoring() {
         />
       </div>
 
-      {/* Undo button */}
-      <button
-        onClick={handleUndo}
-        disabled={!canUndo}
-        className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-4 text-lg font-bold"
-      >
-        Undo
-      </button>
+      {/* Bottom action buttons */}
+      <div className="flex">
+        <button
+          onClick={async () => {
+            if (window.confirm("Cancel this match and start a new one?")) {
+              if (id) await updateMatchStatus(id, "cancelled");
+              navigate("/new");
+            }
+          }}
+          className="flex-1 bg-red-800 hover:bg-red-700 py-4 text-lg font-bold"
+        >
+          Restart
+        </button>
+        <button
+          onClick={handleUndo}
+          disabled={!canUndo}
+          className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-4 text-lg font-bold"
+        >
+          Undo
+        </button>
+      </div>
     </div>
   );
 }

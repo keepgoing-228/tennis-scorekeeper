@@ -44,7 +44,7 @@ export type SetState = {
 
 // --- Match State ---
 
-export type MatchStatus = "in_progress" | "finished";
+export type MatchStatus = "in_progress" | "finished" | "cancelled";
 
 export type MatchState = {
   matchId: string;
