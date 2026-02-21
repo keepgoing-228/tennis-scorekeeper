@@ -13,5 +13,6 @@ export async function updateMatchStatus(matchId: string, status: MatchRecord["st
 }
 
 export async function getCompletedMatches(): Promise<MatchRecord[]> {
-  return db.matches.where("status").equals("finished").reverse().sortBy("createdAt");
+  const matches = await db.matches.where("status").equals("finished").sortBy("createdAt");
+  return matches.reverse();
 }

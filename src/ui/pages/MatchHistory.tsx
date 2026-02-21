@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { MatchRecord } from "../../storage/db.ts";
-import type { MatchStats } from "../../domain/tennis.ts";
+import type { MatchStats, TeamStats } from "../../domain/tennis.ts";
 import { getCompletedMatches } from "../../storage/matchRepo.ts";
 import { getMatchEvents } from "../../storage/eventRepo.ts";
 import { computeMatchStats, getEffectiveEvents, replay } from "../../domain/tennis.ts";
@@ -147,7 +147,7 @@ type StatsDetailProps = {
   teamBName: string;
 };
 
-const STAT_LABELS: { key: string; label: string }[] = [
+const STAT_LABELS: { key: keyof TeamStats; label: string }[] = [
   { key: "totalPointsWon", label: "Total Points Won" },
   { key: "ACE", label: "Aces" },
   { key: "DOUBLE_FAULT", label: "Double Faults" },
@@ -175,8 +175,8 @@ function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
           {STAT_LABELS.map(({ key, label }) => (
             <tr key={key} className="border-b border-gray-800">
               <td className="py-1 text-gray-300">{label}</td>
-              <td className="text-center font-mono">{stats.A[key as keyof typeof stats.A]}</td>
-              <td className="text-center font-mono">{stats.B[key as keyof typeof stats.B]}</td>
+              <td className="text-center font-mono">{stats.A[key]}</td>
+              <td className="text-center font-mono">{stats.B[key]}</td>
             </tr>
           ))}
         </tbody>
