@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import type { BestOf, Ruleset, Team } from "../../domain/types.ts";
 import { createMatch } from "../../storage/matchRepo.ts";
 import { appendEvent } from "../../storage/eventRepo.ts";
@@ -57,6 +57,12 @@ export default function NewMatch() {
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
         <h1 className="text-3xl font-bold text-center">New Match</h1>
+        <Link
+          to="/history"
+          className="block text-center text-blue-400 hover:text-blue-300 text-sm"
+        >
+          Match History
+        </Link>
 
         <div className="space-y-3">
           <div>

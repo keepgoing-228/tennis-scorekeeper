@@ -11,3 +11,7 @@ export async function getMatch(matchId: string): Promise<MatchRecord | undefined
 export async function updateMatchStatus(matchId: string, status: MatchRecord["status"]): Promise<void> {
   await db.matches.update(matchId, { status, updatedAt: new Date().toISOString() });
 }
+
+export async function getCompletedMatches(): Promise<MatchRecord[]> {
+  return db.matches.where("status").equals("finished").reverse().sortBy("createdAt");
+}
