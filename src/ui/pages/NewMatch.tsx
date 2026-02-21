@@ -96,26 +96,37 @@ export default function NewMatch() {
                 {n}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setBestOf("practice")}
+              className={`flex-1 py-2 rounded font-bold ${
+                bestOf === "practice" ? "bg-blue-600" : "bg-gray-700"
+              }`}
+            >
+              Practice
+            </button>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Tiebreak</label>
-          <div className="flex gap-3">
-            {(["none", "7pt"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTiebreak(t)}
-                className={`flex-1 py-2 rounded font-bold ${
-                  tiebreak === t ? "bg-blue-600" : "bg-gray-700"
-                }`}
-              >
-                {t === "none" ? "None" : "7-point"}
-              </button>
-            ))}
+        {bestOf !== "practice" && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Tiebreak</label>
+            <div className="flex gap-3">
+              {(["none", "7pt"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTiebreak(t)}
+                  className={`flex-1 py-2 rounded font-bold ${
+                    tiebreak === t ? "bg-blue-600" : "bg-gray-700"
+                  }`}
+                >
+                  {t === "none" ? "None" : "7-point"}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-2">Match Type</label>
