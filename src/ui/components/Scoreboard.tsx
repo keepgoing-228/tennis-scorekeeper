@@ -19,13 +19,17 @@ export default function Scoreboard({ state }: Props) {
 
   return (
     <div className="bg-gray-800 p-3 text-center space-y-2">
-      <div className="flex justify-center gap-4 text-sm text-gray-400">
-        {state.sets.map((set, i) => (
-          <span key={i} className={i === state.currentSetIndex ? "text-white font-bold" : ""}>
-            {set.gamesA}-{set.gamesB}
-          </span>
-        ))}
-      </div>
+      {state.ruleset.bestOf === "practice" ? (
+        <div className="text-sm text-yellow-400 font-bold">Practice Tiebreak</div>
+      ) : (
+        <div className="flex justify-center gap-4 text-sm text-gray-400">
+          {state.sets.map((set, i) => (
+            <span key={i} className={i === state.currentSetIndex ? "text-white font-bold" : ""}>
+              {set.gamesA}-{set.gamesB}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="flex justify-between items-center text-lg font-bold px-4">
         <div className="flex items-center gap-2">
@@ -41,7 +45,7 @@ export default function Scoreboard({ state }: Props) {
         </div>
       </div>
 
-      {currentSet.game.kind === "tiebreak" && (
+      {currentSet.game.kind === "tiebreak" && state.ruleset.bestOf !== "practice" && (
         <div className="text-xs text-yellow-400">TIEBREAK</div>
       )}
     </div>
