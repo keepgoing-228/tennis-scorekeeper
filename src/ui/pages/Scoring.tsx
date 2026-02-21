@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router";
 import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide } from "../../domain/types.ts";
 import { applyPointWon, replay, getEffectiveEvents } from "../../domain/tennis.ts";
@@ -110,6 +110,10 @@ export default function Scoring() {
   const isFinished = matchState.status === "finished";
   const teamAName = matchState.teams.A.players.map((p) => p.displayName).join(" / ");
   const teamBName = matchState.teams.B.players.map((p) => p.displayName).join(" / ");
+  const canUndo = useMemo(
+    () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
+    [allEvents],
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
@@ -149,7 +153,7 @@ export default function Scoring() {
       {/* Undo button */}
       <button
         onClick={handleUndo}
-        disabled={isFinished || getEffectiveEvents(allEvents).filter(e => e.type === "POINT_WON").length === 0}
+        disabled={!canUndo}
         className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-4 text-lg font-bold"
       >
         Undo
