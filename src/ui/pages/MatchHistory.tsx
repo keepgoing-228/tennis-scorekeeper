@@ -107,15 +107,7 @@ export default function MatchHistory() {
   return (
     <div className="min-h-screen bg-gray-900 text-white px-4 pt-12 pb-4">
       <div className="max-w-md mx-auto space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight">Match History</h1>
-          <Link
-            to="/new"
-            className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
-          >
-            New Match
-          </Link>
-        </div>
+        <h1 className="text-xl font-bold tracking-tight text-center">Match History</h1>
 
         {matches.length === 0 ? (
           <p className="text-gray-500 text-center py-12 text-sm">
@@ -190,6 +182,13 @@ export default function MatchHistory() {
             ))}
           </div>
         )}
+
+        <Link
+          to="/new"
+          className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
+        >
+          New Match
+        </Link>
       </div>
     </div>
   );
