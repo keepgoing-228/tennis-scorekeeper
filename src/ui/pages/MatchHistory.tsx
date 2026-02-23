@@ -86,6 +86,11 @@ export default function MatchHistory() {
       await deleteMatch(matchId);
       setMatches((prev) => prev.filter((m) => m.record.matchId !== matchId));
       if (expandedId === matchId) setExpandedId(null);
+      setStats((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
     } catch (err) {
       console.error("Failed to delete match:", err);
     }
@@ -129,7 +134,7 @@ export default function MatchHistory() {
                         </div>
                         <div className="text-lg font-mono mt-1">{setScores}</div>
                       </div>
-                      <div className="text-right text-sm">
+                      <div className="text-right text-sm pr-8">
                         <div className="text-green-400">{winnerName} wins</div>
                         <div className="text-gray-400">{matchTypeLabel}</div>
                         <div className="text-gray-500">{formatDate(record.createdAt)}</div>
