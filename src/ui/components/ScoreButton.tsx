@@ -23,14 +23,16 @@ export default function ScoreButton({ teamName, side, game, disabled, onScore }:
     <button
       onClick={onScore}
       disabled={disabled}
-      className={`flex-1 flex flex-col items-center justify-center gap-4 text-white transition-colors ${
+      className={`flex-1 flex flex-col items-center justify-center gap-3 text-white transition-colors duration-150 ${
         side === "A"
-          ? "bg-blue-700 hover:bg-blue-600 active:bg-blue-500"
-          : "bg-red-700 hover:bg-red-600 active:bg-red-500"
-      } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          ? "bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border-r border-slate-700/50"
+          : "bg-stone-800 hover:bg-stone-700 active:bg-stone-600 border-l border-stone-700/50"
+      } ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
     >
-      <span className="text-xl font-bold">{teamName}</span>
-      <span className="text-7xl font-mono font-bold">{score}</span>
+      <span className="text-sm font-semibold tracking-wide text-gray-300 uppercase">
+        {teamName}
+      </span>
+      <span className="text-8xl font-mono font-bold tabular-nums">{score}</span>
     </button>
   );
 }
