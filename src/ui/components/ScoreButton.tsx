@@ -25,8 +25,8 @@ export default function ScoreButton({ teamName, side, game, disabled, onScore }:
       disabled={disabled}
       className={`flex-1 flex flex-col items-center justify-center gap-3 text-white transition-colors duration-150 ${
         side === "A"
-          ? "bg-slate-800 hover:bg-slate-700 active:bg-slate-600 border-r border-slate-700/50"
-          : "bg-stone-800 hover:bg-stone-700 active:bg-stone-600 border-l border-stone-700/50"
+          ? "bg-blue-900 hover:bg-blue-800 active:bg-blue-700 border-r border-blue-800/50"
+          : "bg-red-900 hover:bg-red-800 active:bg-red-700 border-l border-red-800/50"
       } ${disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
     >
       <span className="text-sm font-semibold tracking-wide text-gray-300 uppercase">
