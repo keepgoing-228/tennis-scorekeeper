@@ -155,13 +155,18 @@ export default function Scoring() {
 
       {/* Match finished overlay */}
       {isFinished && (
-        <div className="bg-green-800 p-4 text-center">
-          <p className="text-2xl font-bold">
-            {matchState.winner === "A" ? teamAName : teamBName} wins!
-          </p>
-          <Link to="/new" className="inline-block mt-2 text-blue-300 underline">
-            New Match
-          </Link>
+        <div className="flex items-center justify-center py-6 px-4">
+          <div className="bg-green-900/60 border border-green-700/40 rounded-xl px-6 py-4 text-center">
+            <p className="text-2xl font-bold text-green-200">
+              {matchState.winner === "A" ? teamAName : teamBName} wins!
+            </p>
+            <Link
+              to="/new"
+              className="inline-block mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              New Match
+            </Link>
+          </div>
         </div>
       )}
 
@@ -189,7 +194,7 @@ export default function Scoring() {
       )}
 
       {/* Bottom action buttons */}
-      <div className="flex">
+      <div className="flex gap-px bg-gray-950">
         <button
           onClick={async () => {
             if (window.confirm("Cancel this match and start a new one?")) {
@@ -197,16 +202,16 @@ export default function Scoring() {
               navigate("/new");
             }
           }}
-          className="flex-1 bg-red-800 hover:bg-red-700 py-4 text-lg font-bold"
+          className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 py-3.5 text-sm font-semibold text-red-400 transition-colors duration-150"
         >
           Restart
         </button>
         <button
           onClick={handleUndo}
           disabled={!canUndo}
-          className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed py-4 text-lg font-bold"
+          className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed py-3.5 text-sm font-semibold text-gray-300 transition-colors duration-150"
         >
-          Undo
+          ↩ Undo
         </button>
       </div>
     </div>
