@@ -7,8 +7,8 @@ import type { MatchCreatedEvent } from "../../domain/types.ts";
 
 export default function NewMatch() {
   const navigate = useNavigate();
-  const [teamAName, setTeamAName] = useState("Team A");
-  const [teamBName, setTeamBName] = useState("Team B");
+  const [teamAName, setTeamAName] = useState("");
+  const [teamBName, setTeamBName] = useState("");
   const [bestOf, setBestOf] = useState<BestOf>(3);
   const [tiebreak, setTiebreak] = useState<"none" | "7pt">("7pt");
   const [matchType, setMatchType] = useState<"singles" | "doubles">("singles");
@@ -69,7 +69,8 @@ export default function NewMatch() {
               type="text"
               value={teamAName}
               onChange={(e) => setTeamAName(e.target.value)}
-              className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
+              placeholder="Team A"
+              className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
               required
             />
           </div>
@@ -81,7 +82,8 @@ export default function NewMatch() {
               type="text"
               value={teamBName}
               onChange={(e) => setTeamBName(e.target.value)}
-              className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
+              placeholder="Team B"
+              className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
               required
             />
           </div>
@@ -190,7 +192,7 @@ export default function NewMatch() {
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                {s === "A" ? teamAName : teamBName}
+                {s === "A" ? (teamAName || "Team A") : (teamBName || "Team B")}
               </button>
             ))}
           </div>
