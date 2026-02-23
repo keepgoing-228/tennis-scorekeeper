@@ -108,14 +108,19 @@ export default function MatchHistory() {
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-md mx-auto space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Match History</h1>
-          <Link to="/new" className="text-blue-400 hover:text-blue-300 text-sm">
+          <h1 className="text-xl font-bold tracking-tight">Match History</h1>
+          <Link
+            to="/new"
+            className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+          >
             New Match
           </Link>
         </div>
 
         {matches.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No completed matches yet.</p>
+          <p className="text-gray-500 text-center py-12 text-sm">
+            No completed matches yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {matches.map(({ record, setScores, winnerName, matchTypeLabel }) => (
@@ -123,21 +128,27 @@ export default function MatchHistory() {
                 <div className="relative">
                   <button
                     onClick={() => toggleExpand(record.matchId)}
-                    className="w-full bg-gray-800 rounded-lg p-3 text-left hover:bg-gray-750 transition-colors"
+                    className="w-full bg-gray-800 rounded-lg p-3.5 text-left hover:bg-gray-750 transition-colors duration-150 border border-gray-700/30"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-bold">
+                        <div className="font-semibold text-sm text-gray-200">
                           {record.teams.A.players.map((p) => p.displayName).join(" / ")}
                           {" vs "}
                           {record.teams.B.players.map((p) => p.displayName).join(" / ")}
                         </div>
-                        <div className="text-lg font-mono mt-1">{setScores}</div>
+                        <div className="text-lg font-mono mt-1 tabular-nums">
+                          {setScores}
+                        </div>
                       </div>
-                      <div className="text-right text-sm pr-8">
-                        <div className="text-green-400">{winnerName} wins</div>
-                        <div className="text-gray-400">{matchTypeLabel}</div>
-                        <div className="text-gray-500">{formatDate(record.createdAt)}</div>
+                      <div className="text-right text-xs pr-7">
+                        <div className="text-green-400 font-medium">
+                          {winnerName} wins
+                        </div>
+                        <div className="text-gray-500 mt-0.5">{matchTypeLabel}</div>
+                        <div className="text-gray-600 mt-0.5">
+                          {formatDate(record.createdAt)}
+                        </div>
                       </div>
                     </div>
                   </button>
@@ -146,11 +157,20 @@ export default function MatchHistory() {
                       e.stopPropagation();
                       handleDelete(record.matchId);
                     }}
-                    className="absolute top-2 right-2 p-1 text-gray-500 hover:text-red-400 transition-colors"
+                    className="absolute top-2.5 right-2.5 p-1 text-gray-600 hover:text-red-400 transition-colors duration-150"
                     aria-label="Delete match"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                      <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.519.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -158,8 +178,12 @@ export default function MatchHistory() {
                 {expandedId === record.matchId && stats[record.matchId] && (
                   <StatsDetail
                     stats={stats[record.matchId]}
-                    teamAName={record.teams.A.players.map((p) => p.displayName).join(" / ")}
-                    teamBName={record.teams.B.players.map((p) => p.displayName).join(" / ")}
+                    teamAName={record.teams.A.players
+                      .map((p) => p.displayName)
+                      .join(" / ")}
+                    teamBName={record.teams.B.players
+                      .map((p) => p.displayName)
+                      .join(" / ")}
                   />
                 )}
               </div>
@@ -192,21 +216,26 @@ const STAT_LABELS: { key: keyof TeamStats; label: string }[] = [
 
 function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
   return (
-    <div className="bg-gray-750 rounded-b-lg px-3 py-2 mt-px">
-      <table className="w-full text-sm">
+    <div className="bg-gray-800/60 rounded-b-lg px-3 py-2 mt-px border-x border-b border-gray-700/30">
+      <table className="w-full text-xs">
         <thead>
-          <tr className="text-gray-400 border-b border-gray-700">
-            <th className="text-left py-1">&nbsp;</th>
-            <th className="text-center py-1">{teamAName}</th>
-            <th className="text-center py-1">{teamBName}</th>
+          <tr className="text-gray-500 border-b border-gray-700/50">
+            <th className="text-left py-1.5 font-medium">&nbsp;</th>
+            <th className="text-center py-1.5 font-medium">{teamAName}</th>
+            <th className="text-center py-1.5 font-medium">{teamBName}</th>
           </tr>
         </thead>
         <tbody>
-          {STAT_LABELS.map(({ key, label }) => (
-            <tr key={key} className="border-b border-gray-800">
-              <td className="py-1 text-gray-300">{label}</td>
-              <td className="text-center font-mono">{stats.A[key]}</td>
-              <td className="text-center font-mono">{stats.B[key]}</td>
+          {STAT_LABELS.map(({ key, label }, i) => (
+            <tr
+              key={key}
+              className={`border-b border-gray-800/50 ${
+                i % 2 === 0 ? "bg-gray-800/30" : ""
+              }`}
+            >
+              <td className="py-1.5 text-gray-400">{label}</td>
+              <td className="text-center font-mono tabular-nums">{stats.A[key]}</td>
+              <td className="text-center font-mono tabular-nums">{stats.B[key]}</td>
             </tr>
           ))}
         </tbody>
