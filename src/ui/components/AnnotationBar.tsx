@@ -17,12 +17,12 @@ type Props = {
 
 export default function AnnotationBar({ onSelect }: Props) {
   return (
-    <div className="bg-gray-800 px-2 py-2 flex flex-wrap justify-center gap-1.5">
+    <div className="bg-gray-800/80 backdrop-blur-sm px-3 py-2.5 flex flex-wrap justify-center gap-2">
       {REASONS.map(({ value, label }) => (
         <button
           key={value}
           onClick={() => onSelect(value)}
-          className="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-600 hover:bg-gray-500 active:bg-gray-400 text-white transition-colors"
+          className="px-3 py-1.5 text-xs font-medium rounded-full bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-gray-200 transition-colors duration-150"
         >
           {label}
         </button>
