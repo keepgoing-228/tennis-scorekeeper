@@ -16,3 +16,10 @@ export async function getCompletedMatches(): Promise<MatchRecord[]> {
   const matches = await db.matches.where("status").equals("finished").sortBy("createdAt");
   return matches.reverse();
 }
+
+export async function deleteMatch(matchId: string): Promise<void> {
+  await db.transaction("rw", db.matches, db.events, async () => {
+    await db.events.where("matchId").equals(matchId).delete();
+    await db.matches.delete(matchId);
+  });
+}
