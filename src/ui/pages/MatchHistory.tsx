@@ -105,8 +105,8 @@ export default function MatchHistory() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 pt-12 pb-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-4">
         <h1 className="text-xl font-bold tracking-tight text-center">Match History</h1>
 
         {matches.length === 0 ? (
