@@ -6,6 +6,7 @@ export type Ruleset = {
   bestOf: BestOf;
   tiebreak: "none" | "7pt";
   matchType: "singles" | "doubles";
+  practiceMode?: "tiebreak" | "first_to_3";
 };
 
 // --- Players & Teams ---
