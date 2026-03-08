@@ -12,7 +12,7 @@ export default function Scoreboard({ state }: Props) {
     <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-3 space-y-1.5">
       {state.ruleset.bestOf === "practice" ? (
         <div className="text-sm text-yellow-400 font-semibold text-center tracking-wide">
-          Practice Tiebreak
+          {state.ruleset.practiceMode === "first_to_3" ? "First to 3 Games" : "Practice Tiebreak"}
         </div>
       ) : (
         <div className="flex justify-center gap-5 text-sm text-gray-400 font-mono">

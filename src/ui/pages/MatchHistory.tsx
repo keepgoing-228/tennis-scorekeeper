@@ -22,7 +22,9 @@ function formatDate(iso: string): string {
 }
 
 function getMatchTypeLabel(record: MatchRecord): string {
-  if (record.ruleset.bestOf === "practice") return "Practice Tiebreak";
+  if (record.ruleset.bestOf === "practice") {
+    return record.ruleset.practiceMode === "first_to_3" ? "First to 3 Games" : "Practice Tiebreak";
+  }
   return `Best of ${record.ruleset.bestOf}`;
 }
 
