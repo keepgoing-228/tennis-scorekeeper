@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide, PointAnnotatedEvent, PointLossReason } from "../../domain/types.ts";
+import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide, PointLossReason } from "../../domain/types.ts";
 import { applyPointWon, replay, getEffectiveEvents } from "../../domain/tennis.ts";
 import { getMatchEvents, appendEvent, getNextSeq } from "../../storage/eventRepo.ts";
 import { updateMatchStatus } from "../../storage/matchRepo.ts";
 import Scoreboard from "../components/Scoreboard.tsx";
 import ScoreButton from "../components/ScoreButton.tsx";
 import AnnotationBar from "../components/AnnotationBar.tsx";
+
+const WINNER_ANNOTATIONS: Set<PointLossReason> = new Set(["ACE", "WINNER"]);
 
 export default function Scoring() {
   const { id } = useParams<{ id: string }>();
@@ -19,19 +21,6 @@ export default function Scoring() {
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
     [allEvents],
   );
-
-  const lastPointEventId = useMemo(() => {
-    const effective = getEffectiveEvents(allEvents);
-    const lastPoint = [...effective].reverse().find((e) => e.type === "POINT_WON");
-    return lastPoint?.eventId ?? null;
-  }, [allEvents]);
-
-  const isLastPointAnnotated = useMemo(() => {
-    if (!lastPointEventId) return true;
-    return allEvents.some(
-      (e) => e.type === "POINT_ANNOTATED" && e.payload.pointEventId === lastPointEventId
-    );
-  }, [allEvents, lastPointEventId]);
 
   // Load match state from events on mount
   useEffect(() => {
@@ -49,7 +38,7 @@ export default function Scoring() {
     load();
   }, [id]);
 
-  async function handleScore(team: TeamSide) {
+  async function handleScore(team: TeamSide, annotation?: PointLossReason) {
     if (!matchState || matchState.status === "finished" || !id) return;
 
     const seq = await getNextSeq(id);
@@ -59,7 +48,7 @@ export default function Scoring() {
       createdAt: new Date().toISOString(),
       seq,
       type: "POINT_WON",
-      payload: { team },
+      payload: annotation ? { team, annotation } : { team },
     };
 
     // Persist first
@@ -74,6 +63,15 @@ export default function Scoring() {
     if (newState.status === "finished") {
       await updateMatchStatus(id, "finished");
     }
+  }
+
+  function handleAnnotatedScore(side: TeamSide, reason: PointLossReason) {
+    // Winner annotations (Ace, Winner) → point to the player who performed it
+    // Error annotations → point to opponent
+    const scoringTeam = WINNER_ANNOTATIONS.has(reason)
+      ? side
+      : side === "A" ? "B" : "A";
+    handleScore(scoringTeam, reason);
   }
 
   async function handleUndo() {
@@ -108,23 +106,6 @@ export default function Scoring() {
     if (newState.status === "in_progress" && matchState.status === "finished") {
       await updateMatchStatus(id, "in_progress");
     }
-  }
-
-  async function handleAnnotate(reason: PointLossReason) {
-    if (!id || !lastPointEventId || isLastPointAnnotated) return;
-
-    const seq = await getNextSeq(id);
-    const event: PointAnnotatedEvent = {
-      eventId: crypto.randomUUID(),
-      matchId: id,
-      createdAt: new Date().toISOString(),
-      seq,
-      type: "POINT_ANNOTATED",
-      payload: { pointEventId: lastPointEventId, reason },
-    };
-
-    await appendEvent(event);
-    setAllEvents((prev) => [...prev, event]);
   }
 
   if (loading) {
@@ -170,28 +151,40 @@ export default function Scoring() {
         </div>
       )}
 
-      {/* Giant score buttons */}
+      {/* Two-column scoring layout */}
       <div className="flex flex-1">
-        <ScoreButton
-          teamName={teamAName}
-          side="A"
-          game={currentSet.game}
-          disabled={isFinished}
-          onScore={() => handleScore("A")}
-        />
-        <ScoreButton
-          teamName={teamBName}
-          side="B"
-          game={currentSet.game}
-          disabled={isFinished}
-          onScore={() => handleScore("B")}
-        />
-      </div>
+        {/* Player A column */}
+        <div className="flex-1 flex flex-col">
+          <ScoreButton
+            teamName={teamAName}
+            side="A"
+            game={currentSet.game}
+            disabled={isFinished}
+            onScore={() => handleScore("A")}
+          />
+          <AnnotationBar
+            side="A"
+            disabled={isFinished}
+            onSelect={(reason) => handleAnnotatedScore("A", reason)}
+          />
+        </div>
 
-      {/* Annotation bar */}
-      {lastPointEventId && !isLastPointAnnotated && (
-        <AnnotationBar onSelect={handleAnnotate} />
-      )}
+        {/* Player B column */}
+        <div className="flex-1 flex flex-col">
+          <ScoreButton
+            teamName={teamBName}
+            side="B"
+            game={currentSet.game}
+            disabled={isFinished}
+            onScore={() => handleScore("B")}
+          />
+          <AnnotationBar
+            side="B"
+            disabled={isFinished}
+            onSelect={(reason) => handleAnnotatedScore("B", reason)}
+          />
+        </div>
+      </div>
 
       {/* Bottom action buttons */}
       <div className="flex gap-px bg-gray-950">
