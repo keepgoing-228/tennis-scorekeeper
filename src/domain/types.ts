@@ -79,7 +79,7 @@ export type MatchCreatedEvent = BaseEvent & {
 
 export type PointWonEvent = BaseEvent & {
   type: "POINT_WON";
-  payload: { team: TeamSide };
+  payload: { team: TeamSide; annotation?: PointLossReason };
 };
 
 export type UndoEvent = BaseEvent & {
@@ -109,18 +109,9 @@ export type PointLossReason =
   | "NET_ERROR"
   | "WINNER";
 
-export type PointAnnotatedEvent = BaseEvent & {
-  type: "POINT_ANNOTATED";
-  payload: {
-    pointEventId: string;
-    reason: PointLossReason;
-  };
-};
-
 export type MatchEvent =
   | MatchCreatedEvent
   | PointWonEvent
   | UndoEvent
   | RedoEvent
-  | MatchEndedEvent
-  | PointAnnotatedEvent;
+  | MatchEndedEvent;
