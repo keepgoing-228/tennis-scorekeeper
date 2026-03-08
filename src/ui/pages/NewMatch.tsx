@@ -13,12 +13,18 @@ export default function NewMatch() {
   const [tiebreak, setTiebreak] = useState<"none" | "7pt">("7pt");
   const [matchType, setMatchType] = useState<"singles" | "doubles">("singles");
   const [firstServer, setFirstServer] = useState<"A" | "B">("A");
+  const [practiceMode, setPracticeMode] = useState<"tiebreak" | "first_to_3">("tiebreak");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const matchId = crypto.randomUUID();
-    const ruleset: Ruleset = { bestOf, tiebreak, matchType };
+    const ruleset: Ruleset = {
+      bestOf,
+      tiebreak,
+      matchType,
+      ...(bestOf === "practice" ? { practiceMode } : {}),
+    };
     const teamA: Team = {
       teamId: "A",
       players: [{ playerId: crypto.randomUUID(), displayName: teamAName }],
@@ -123,6 +129,38 @@ export default function NewMatch() {
             </button>
           </div>
         </div>
+
+        {bestOf === "practice" && (
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
+              Practice Mode
+            </label>
+            <div className="flex">
+              <button
+                type="button"
+                onClick={() => setPracticeMode("tiebreak")}
+                className={`flex-1 py-2 rounded-l-lg font-semibold text-sm transition-colors duration-150 border-r border-gray-700/50 ${
+                  practiceMode === "tiebreak"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Tiebreak
+              </button>
+              <button
+                type="button"
+                onClick={() => setPracticeMode("first_to_3")}
+                className={`flex-1 py-2 rounded-r-lg font-semibold text-sm transition-colors duration-150 ${
+                  practiceMode === "first_to_3"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                First to 3
+              </button>
+            </div>
+          </div>
+        )}
 
         {bestOf !== "practice" && (
           <div>
