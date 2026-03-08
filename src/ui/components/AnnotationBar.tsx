@@ -22,19 +22,20 @@ type Props = {
 
 export default function AnnotationBar({ side, disabled, onSelect }: Props) {
   const chipBase =
-    "w-full py-1.5 text-xs font-medium rounded-md transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed";
+    "w-full min-h-[44px] py-2 text-xs font-medium rounded-lg border transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
   const winnerStyle =
     side === "A"
-      ? "bg-blue-800/60 hover:bg-blue-700/60 active:bg-blue-600/60 text-blue-200"
-      : "bg-red-800/60 hover:bg-red-700/60 active:bg-red-600/60 text-red-200";
+      ? "border-blue-500/50 bg-blue-950/40 hover:bg-blue-800/50 active:bg-blue-700/50 text-blue-300"
+      : "border-red-500/50 bg-red-950/40 hover:bg-red-800/50 active:bg-red-700/50 text-red-300";
   const errorStyle =
-    "bg-gray-700/60 hover:bg-gray-600/60 active:bg-gray-500/60 text-gray-300";
+    "border-gray-600/50 bg-gray-800/40 hover:bg-gray-700/50 active:bg-gray-600/50 text-gray-400";
 
   return (
-    <div className="flex flex-col gap-1 px-1.5 pb-2">
+    <div className="bg-gray-950/60 border-t border-gray-700/40 px-2 py-2 flex flex-col gap-1.5">
       {WINNER_REASONS.map(({ value, label }) => (
         <button
           key={value}
+          type="button"
           onClick={() => onSelect(value)}
           disabled={disabled}
           className={`${chipBase} ${winnerStyle}`}
@@ -46,6 +47,7 @@ export default function AnnotationBar({ side, disabled, onSelect }: Props) {
       {ERROR_REASONS.map(({ value, label }) => (
         <button
           key={value}
+          type="button"
           onClick={() => onSelect(value)}
           disabled={disabled}
           className={`${chipBase} ${errorStyle}`}

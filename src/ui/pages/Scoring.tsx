@@ -154,7 +154,7 @@ export default function Scoring() {
       {/* Two-column scoring layout */}
       <div className="flex flex-1">
         {/* Player A column */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col border-r border-gray-700/40">
           <ScoreButton
             teamName={teamAName}
             side="A"
