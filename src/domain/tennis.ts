@@ -220,7 +220,7 @@ export function getEffectiveEvents(events: MatchEvent[]): MatchEvent[] {
   }
 
   return events.filter(
-    (e) => e.type !== "UNDO" && e.type !== "REDO" && e.type !== "POINT_ANNOTATED" && !undoneIds.has(e.eventId)
+    (e) => e.type !== "UNDO" && e.type !== "REDO" && !undoneIds.has(e.eventId)
   );
 }
 
@@ -276,25 +276,15 @@ function emptyTeamStats(): TeamStats {
 
 export function computeMatchStats(events: MatchEvent[]): MatchStats {
   const effective = getEffectiveEvents(events);
-  const effectiveIds = new Set(effective.map(e => e.eventId));
 
   const stats: MatchStats = { A: emptyTeamStats(), B: emptyTeamStats() };
 
-  // Build annotation map: pointEventId -> reason
-  const annotations = new Map<string, PointLossReason>();
-  for (const event of events) {
-    if (event.type === "POINT_ANNOTATED" && effectiveIds.has(event.payload.pointEventId)) {
-      annotations.set(event.payload.pointEventId, event.payload.reason);
-    }
-  }
-
-  // Count points and apply annotations
   for (const event of effective) {
     if (event.type === "POINT_WON") {
       const team = event.payload.team;
       stats[team].totalPointsWon += 1;
 
-      const reason = annotations.get(event.eventId);
+      const reason = event.payload.annotation;
       if (reason) {
         stats[team][reason] += 1;
       } else {

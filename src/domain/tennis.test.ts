@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { initMatchState, applyPointWon, getEffectiveEvents, replay, computeMatchStats } from "./tennis.ts";
-import type { Ruleset, Team, MatchState, TeamSide, PointWonEvent, MatchCreatedEvent, UndoEvent, MatchEvent, PointAnnotatedEvent } from "./types.ts";
+import type { Ruleset, Team, MatchState, TeamSide, PointWonEvent, MatchCreatedEvent, UndoEvent, MatchEvent, PointLossReason } from "./types.ts";
 
 const defaultRuleset: Ruleset = {
   bestOf: 3,
@@ -263,14 +263,14 @@ function makeMatchCreatedEvent(matchId: string, ruleset: Ruleset, teams: { A: Te
   };
 }
 
-function makePointWonEvent(matchId: string, seq: number, team: TeamSide): PointWonEvent {
+function makePointWonEvent(matchId: string, seq: number, team: TeamSide, annotation?: PointLossReason): PointWonEvent {
   return {
     eventId: `evt-${seq}`,
     matchId,
     createdAt: new Date().toISOString(),
     seq,
     type: "POINT_WON",
-    payload: { team },
+    payload: annotation ? { team, annotation } : { team },
   };
 }
 
@@ -406,50 +406,25 @@ describe("practice tiebreak mode", () => {
   });
 });
 
-function makePointAnnotatedEvent(matchId: string, seq: number, pointEventId: string, reason: "DOUBLE_FAULT" | "ACE" | "FOREHAND_ERROR" | "BACKHAND_ERROR" | "VOLLEY_ERROR" | "OUT_OF_BOUNDS" | "NET_ERROR" | "WINNER"): PointAnnotatedEvent {
-  return {
-    eventId: `evt-${seq}`,
-    matchId,
-    createdAt: new Date().toISOString(),
-    seq,
-    type: "POINT_ANNOTATED",
-    payload: { pointEventId, reason },
-  };
-}
-
-describe("POINT_ANNOTATED in replay", () => {
-  it("ignores POINT_ANNOTATED events during replay", () => {
+describe("annotation in replay", () => {
+  it("ignores annotation field during replay (does not affect scoring)", () => {
     const events: MatchEvent[] = [
       makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
-      makePointWonEvent("m1", 1, "A"),
-      makePointAnnotatedEvent("m1", 2, "evt-1", "ACE"),
-      makePointWonEvent("m1", 3, "B"),
+      makePointWonEvent("m1", 1, "A", "ACE"),
+      makePointWonEvent("m1", 2, "B", "FOREHAND_ERROR"),
     ];
     const state = replay(events);
     expect(state.sets[0].game).toMatchObject({ pointsA: 15, pointsB: 15 });
   });
-
-  it("excludes POINT_ANNOTATED from effective events", () => {
-    const events: MatchEvent[] = [
-      makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
-      makePointWonEvent("m1", 1, "A"),
-      makePointAnnotatedEvent("m1", 2, "evt-1", "DOUBLE_FAULT"),
-    ];
-    const effective = getEffectiveEvents(events);
-    expect(effective).toHaveLength(2);
-    expect(effective.every(e => e.type !== "POINT_ANNOTATED")).toBe(true);
-  });
 });
 
 describe("computeMatchStats", () => {
-  it("computes stats from annotated points", () => {
+  it("computes stats from inline annotations on POINT_WON events", () => {
     const events: MatchEvent[] = [
       makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
-      makePointWonEvent("m1", 1, "A"),
-      makePointAnnotatedEvent("m1", 2, "evt-1", "ACE"),
-      makePointWonEvent("m1", 3, "B"),
-      makePointAnnotatedEvent("m1", 4, "evt-3", "FOREHAND_ERROR"),
-      makePointWonEvent("m1", 5, "A"),
+      makePointWonEvent("m1", 1, "A", "ACE"),
+      makePointWonEvent("m1", 2, "B", "FOREHAND_ERROR"),
+      makePointWonEvent("m1", 3, "A"),
     ];
     const stats = computeMatchStats(events);
 
@@ -464,9 +439,8 @@ describe("computeMatchStats", () => {
   it("ignores annotations for undone points", () => {
     const events: MatchEvent[] = [
       makeMatchCreatedEvent("m1", defaultRuleset, { A: teamA, B: teamB }, "A"),
-      makePointWonEvent("m1", 1, "A"),
-      makePointAnnotatedEvent("m1", 2, "evt-1", "ACE"),
-      makeUndoEvent("m1", 3, "evt-1"),
+      makePointWonEvent("m1", 1, "A", "ACE"),
+      makeUndoEvent("m1", 2, "evt-1"),
     ];
     const stats = computeMatchStats(events);
     expect(stats.A.totalPointsWon).toBe(0);
