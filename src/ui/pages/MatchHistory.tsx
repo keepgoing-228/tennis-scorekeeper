@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { MatchRecord } from "../../storage/db.ts";
 import type { MatchStats, TeamStats } from "../../domain/tennis.ts";
-import { getCompletedMatches, deleteMatch } from "../../storage/matchRepo.ts";
+import { getCompletedMatches, deleteMatch, deleteAllMatches } from "../../storage/matchRepo.ts";
 import { getMatchEvents } from "../../storage/eventRepo.ts";
 import { computeMatchStats, getEffectiveEvents, replay } from "../../domain/tennis.ts";
 
@@ -78,6 +78,18 @@ export default function MatchHistory() {
     }
 
     setExpandedId(matchId);
+  }
+
+  async function handleDeleteAll() {
+    if (!confirm("Delete all matches? This cannot be undone.")) return;
+    try {
+      await deleteAllMatches();
+      setMatches([]);
+      setExpandedId(null);
+      setStats({});
+    } catch (err) {
+      console.error("Failed to delete all matches:", err);
+    }
   }
 
   async function handleDelete(matchId: string) {
@@ -181,6 +193,15 @@ export default function MatchHistory() {
               </div>
             ))}
           </div>
+        )}
+
+        {matches.length > 0 && (
+          <button
+            onClick={handleDeleteAll}
+            className="block w-full text-center text-sm text-red-500/60 hover:text-red-400 transition-colors"
+          >
+            Delete All Matches
+          </button>
         )}
 
         <Link

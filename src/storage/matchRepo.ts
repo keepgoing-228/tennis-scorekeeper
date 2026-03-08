@@ -23,3 +23,10 @@ export async function deleteMatch(matchId: string): Promise<void> {
     await db.matches.delete(matchId);
   });
 }
+
+export async function deleteAllMatches(): Promise<void> {
+  await db.transaction("rw", db.matches, db.events, async () => {
+    await db.events.clear();
+    await db.matches.clear();
+  });
+}
