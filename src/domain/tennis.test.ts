@@ -456,3 +456,79 @@ describe("computeMatchStats", () => {
     expect(stats.B.totalPointsWon).toBe(0);
   });
 });
+
+const firstTo3Ruleset: Ruleset = {
+  bestOf: "practice",
+  tiebreak: "7pt",
+  matchType: "singles",
+  practiceMode: "first_to_3",
+};
+
+describe("first to 3 games practice mode", () => {
+  it("starts with a normal game (not tiebreak)", () => {
+    const state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    expect(state.sets[0].game.kind).toBe("normal");
+    expect(state.sets[0].game).toEqual({ kind: "normal", pointsA: 0, pointsB: 0, deuce: false });
+  });
+
+  it("uses normal game scoring (0/15/30/40)", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game).toMatchObject({ pointsA: 15, pointsB: 0 });
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game).toMatchObject({ pointsA: 30, pointsB: 0 });
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game).toMatchObject({ pointsA: 40, pointsB: 0 });
+  });
+
+  it("supports deuce and advantage", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = scorePoints(state, ["A", "A", "A", "B", "B", "B"]);
+    expect(state.sets[0].game).toMatchObject({ pointsA: 40, pointsB: 40, deuce: true });
+    state = applyPointWon(state, "A");
+    expect(state.sets[0].game).toMatchObject({ pointsA: "AD", pointsB: 40 });
+  });
+
+  it("alternates server after each game", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    expect(state.server).toBe("A");
+    state = scorePoints(state, ["A", "A", "A", "A"]); // A wins game 1
+    expect(state.server).toBe("B");
+    state = scorePoints(state, ["B", "B", "B", "B"]); // B wins game 2
+    expect(state.server).toBe("A");
+  });
+
+  it("wins match when a player reaches 3 games", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 3);
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("A");
+  });
+
+  it("does not require 2-game margin", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 2);
+    state = winGames(state, "B", 2);
+    state = winGames(state, "A", 1);
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("A");
+    expect(state.sets[0].gamesA).toBe(3);
+    expect(state.sets[0].gamesB).toBe(2);
+  });
+
+  it("stays in single set (no new set created)", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "B", 3);
+    expect(state.status).toBe("finished");
+    expect(state.winner).toBe("B");
+    expect(state.sets).toHaveLength(1);
+  });
+
+  it("ignores points after match is finished", () => {
+    let state = initMatchState("m1", firstTo3Ruleset, { A: teamA, B: teamB }, "A");
+    state = winGames(state, "A", 3);
+    const finishedState = state;
+    state = applyPointWon(state, "B");
+    expect(state).toEqual(finishedState);
+  });
+});

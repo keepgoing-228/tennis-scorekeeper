@@ -24,7 +24,7 @@ export function initMatchState(
     matchId,
     ruleset,
     teams,
-    sets: [{ gamesA: 0, gamesB: 0, game: ruleset.bestOf === "practice" ? freshTiebreak() : freshGame() }],
+    sets: [{ gamesA: 0, gamesB: 0, game: ruleset.bestOf === "practice" && ruleset.practiceMode !== "first_to_3" ? freshTiebreak() : freshGame() }],
     currentSetIndex: 0,
     setsWonA: 0,
     setsWonB: 0,
@@ -54,6 +54,20 @@ function winGame(state: MatchState, winner: TeamSide): MatchState {
 
   // Check for set win
   const { gamesA, gamesB } = currentSet;
+
+  // first_to_3 practice mode: win at 3 games, no margin needed
+  if (state.ruleset.bestOf === "practice" && state.ruleset.practiceMode === "first_to_3") {
+    if (gamesA >= 3 || gamesB >= 3) {
+      const ftWinner: TeamSide = gamesA > gamesB ? "A" : "B";
+      currentSet.game = freshGame();
+      sets[state.currentSetIndex] = currentSet;
+      return winSet(state, sets, ftWinner);
+    }
+    // Continue playing — start new game
+    currentSet.game = freshGame();
+    sets[state.currentSetIndex] = currentSet;
+    return { ...state, sets, server: otherSide(state.server) };
+  }
 
   // first state: tiebreak is enabled and both players have 6 games
   const needsTiebreak = state.ruleset.tiebreak === "7pt" && gamesA === 6 && gamesB === 6;
