@@ -50,5 +50,6 @@
   "statNetErrors": "Net Errors",
   "statWinners": "Winners",
   "statUnannotated": "Unannotated",
-  "deleteMatch": "Delete match"
+  "deleteMatch": "Delete match",
+  "swap": "⇄ Swap"
 }

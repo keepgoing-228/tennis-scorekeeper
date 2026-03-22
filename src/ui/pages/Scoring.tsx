@@ -18,6 +18,7 @@ export default function Scoring() {
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [allEvents, setAllEvents] = useState<MatchEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [swapped, setSwapped] = useState(false);
 
   const canUndo = useMemo(
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
@@ -136,7 +137,7 @@ export default function Scoring() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Scoreboard header */}
-      <Scoreboard state={matchState} />
+      <Scoreboard state={matchState} swapped={swapped} />
 
       {/* Match finished overlay */}
       {isFinished && (
@@ -156,39 +157,44 @@ export default function Scoring() {
       )}
 
       {/* Two-column scoring layout */}
-      <div className="flex flex-1">
-        {/* Player A column */}
-        <div className="flex-1 flex flex-col border-r border-gray-700/40">
-          <ScoreButton
-            teamName={teamAName}
-            side="A"
-            game={currentSet.game}
-            disabled={isFinished}
-            onScore={() => handleScore("A")}
-          />
-          <AnnotationBar
-            side="A"
-            disabled={isFinished}
-            onSelect={(reason) => handleAnnotatedScore("A", reason)}
-          />
-        </div>
-
-        {/* Player B column */}
-        <div className="flex-1 flex flex-col">
-          <ScoreButton
-            teamName={teamBName}
-            side="B"
-            game={currentSet.game}
-            disabled={isFinished}
-            onScore={() => handleScore("B")}
-          />
-          <AnnotationBar
-            side="B"
-            disabled={isFinished}
-            onSelect={(reason) => handleAnnotatedScore("B", reason)}
-          />
-        </div>
-      </div>
+      {(() => {
+        const leftSide: TeamSide = swapped ? "B" : "A";
+        const rightSide: TeamSide = swapped ? "A" : "B";
+        const leftName = swapped ? teamBName : teamAName;
+        const rightName = swapped ? teamAName : teamBName;
+        return (
+          <div className="flex flex-1">
+            <div className="flex-1 flex flex-col border-r border-gray-700/40">
+              <ScoreButton
+                teamName={leftName}
+                side={leftSide}
+                game={currentSet.game}
+                disabled={isFinished}
+                onScore={() => handleScore(leftSide)}
+              />
+              <AnnotationBar
+                side={leftSide}
+                disabled={isFinished}
+                onSelect={(reason) => handleAnnotatedScore(leftSide, reason)}
+              />
+            </div>
+            <div className="flex-1 flex flex-col">
+              <ScoreButton
+                teamName={rightName}
+                side={rightSide}
+                game={currentSet.game}
+                disabled={isFinished}
+                onScore={() => handleScore(rightSide)}
+              />
+              <AnnotationBar
+                side={rightSide}
+                disabled={isFinished}
+                onSelect={(reason) => handleAnnotatedScore(rightSide, reason)}
+              />
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Bottom action buttons */}
       <div className="flex gap-px bg-gray-950">
@@ -202,6 +208,12 @@ export default function Scoring() {
           className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 py-3.5 text-sm font-semibold text-red-400 transition-colors duration-150"
         >
           {t('restart')}
+        </button>
+        <button
+          onClick={() => setSwapped((s) => !s)}
+          className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 py-3.5 text-sm font-semibold text-gray-300 transition-colors duration-150"
+        >
+          {t('swap')}
         </button>
         <button
           onClick={handleUndo}

@@ -50,5 +50,6 @@
   "statNetErrors": "掛網",
   "statWinners": "致勝分",
   "statUnannotated": "未標註",
-  "deleteMatch": "刪除比賽"
+  "deleteMatch": "刪除比賽",
+  "swap": "⇄ 換邊"
 }

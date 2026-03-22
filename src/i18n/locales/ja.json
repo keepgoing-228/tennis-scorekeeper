@@ -50,5 +50,6 @@
   "statNetErrors": "ネットエラー",
   "statWinners": "ウィナー",
   "statUnannotated": "未記録",
-  "deleteMatch": "試合を削除"
+  "deleteMatch": "試合を削除",
+  "swap": "⇄ 入替"
 }

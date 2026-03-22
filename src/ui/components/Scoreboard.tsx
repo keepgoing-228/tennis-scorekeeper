@@ -3,12 +3,17 @@ import type { MatchState } from "../../domain/types.ts";
 
 type Props = {
   state: MatchState;
+  swapped?: boolean;
 };
 
-export default function Scoreboard({ state }: Props) {
+export default function Scoreboard({ state, swapped = false }: Props) {
   const { t } = useTranslation();
   const teamAName = state.teams.A.players.map((p) => p.displayName).join(" / ");
   const teamBName = state.teams.B.players.map((p) => p.displayName).join(" / ");
+  const leftName = swapped ? teamBName : teamAName;
+  const rightName = swapped ? teamAName : teamBName;
+  const leftServer = swapped ? "B" : "A";
+  const rightServer = swapped ? "A" : "B";
 
   return (
     <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-3 space-y-1.5">
@@ -18,31 +23,35 @@ export default function Scoreboard({ state }: Props) {
           : null}
       </div>
       <div className="flex justify-center gap-5 text-sm text-gray-400 font-mono">
-        {state.sets.map((set, i) => (
-          <span
-            key={i}
-            className={
-              i === state.currentSetIndex
-                ? "text-white font-bold"
-                : ""
-            }
-          >
-            {set.gamesA}-{set.gamesB}
-          </span>
-        ))}
+        {state.sets.map((set, i) => {
+          const left = swapped ? set.gamesB : set.gamesA;
+          const right = swapped ? set.gamesA : set.gamesB;
+          return (
+            <span
+              key={i}
+              className={
+                i === state.currentSetIndex
+                  ? "text-white font-bold"
+                  : ""
+              }
+            >
+              {left}-{right}
+            </span>
+          );
+        })}
       </div>
 
       <div className="flex justify-between items-center text-base font-semibold px-2">
         <div className="flex items-center gap-2">
-          {state.server === "A" && (
+          {state.server === leftServer && (
             <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />
           )}
-          <span className="text-gray-200">{teamAName}</span>
+          <span className="text-gray-200">{leftName}</span>
         </div>
         <span className="text-xs text-gray-500 uppercase tracking-wider">{t('vs')}</span>
         <div className="flex items-center gap-2">
-          <span className="text-gray-200">{teamBName}</span>
-          {state.server === "B" && (
+          <span className="text-gray-200">{rightName}</span>
+          {state.server === rightServer && (
             <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" />
           )}
         </div>
