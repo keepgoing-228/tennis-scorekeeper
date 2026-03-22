@@ -4,6 +4,8 @@ import type { BestOf, Ruleset, Team } from "../../domain/types.ts";
 import { createMatch } from "../../storage/matchRepo.ts";
 import { appendEvent } from "../../storage/eventRepo.ts";
 import type { MatchCreatedEvent } from "../../domain/types.ts";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher.tsx";
 
 export default function NewMatch() {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ export default function NewMatch() {
   const [matchType, setMatchType] = useState<"singles" | "doubles">("singles");
   const [firstServer, setFirstServer] = useState<"A" | "B">("A");
   const [practiceMode, setPracticeMode] = useState<"tiebreak" | "first_to_3">("tiebreak");
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,32 +66,32 @@ export default function NewMatch() {
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
       <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
         <h1 className="text-2xl font-bold text-center tracking-tight">
-          Tennis Scorekeeper
+          {t('appTitle')}
         </h1>
 
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wide">
-              Team A
+              {t('teamA')}
             </label>
             <input
               type="text"
               value={teamAName}
               onChange={(e) => setTeamAName(e.target.value)}
-              placeholder="Team A"
+              placeholder={t('teamA')}
               className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
               required
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wide">
-              Team B
+              {t('teamB')}
             </label>
             <input
               type="text"
               value={teamBName}
               onChange={(e) => setTeamBName(e.target.value)}
-              placeholder="Team B"
+              placeholder={t('teamB')}
               className="w-full bg-gray-800 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-colors"
               required
             />
@@ -97,7 +100,7 @@ export default function NewMatch() {
 
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
-            Best Of
+            {t('bestOf')}
           </label>
           <div className="flex">
             {([1, 3, 5] as BestOf[]).map((n, i) => (
@@ -125,7 +128,7 @@ export default function NewMatch() {
                   : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}
             >
-              Practice
+              {t('practice')}
             </button>
           </div>
         </div>
@@ -133,7 +136,7 @@ export default function NewMatch() {
         {bestOf === "practice" && (
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
-              Practice Mode
+              {t('practiceMode')}
             </label>
             <div className="flex">
               <button
@@ -145,7 +148,7 @@ export default function NewMatch() {
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                Tiebreak
+                {t('tiebreak')}
               </button>
               <button
                 type="button"
@@ -156,7 +159,7 @@ export default function NewMatch() {
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                First to 3
+                {t('firstTo3')}
               </button>
             </div>
           </div>
@@ -165,23 +168,23 @@ export default function NewMatch() {
         {bestOf !== "practice" && (
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
-              Tiebreak
+              {t('tiebreak')}
             </label>
             <div className="flex">
-              {(["none", "7pt"] as const).map((t, i) => (
+              {(["none", "7pt"] as const).map((tb, i) => (
                 <button
-                  key={t}
+                  key={tb}
                   type="button"
-                  onClick={() => setTiebreak(t)}
+                  onClick={() => setTiebreak(tb)}
                   className={`flex-1 py-2 font-semibold text-sm transition-colors duration-150 ${
                     i === 0 ? "rounded-l-lg border-r border-gray-700/50" : "rounded-r-lg"
                   } ${
-                    tiebreak === t
+                    tiebreak === tb
                       ? "bg-blue-600 text-white"
                       : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   }`}
                 >
-                  {t === "none" ? "None" : "7-point"}
+                  {tb === "none" ? t('tiebreakNone') : t('tiebreak7pt')}
                 </button>
               ))}
             </div>
@@ -190,23 +193,23 @@ export default function NewMatch() {
 
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
-            Match Type
+            {t('matchType')}
           </label>
           <div className="flex">
-            {(["singles", "doubles"] as const).map((t, i) => (
+            {(["singles", "doubles"] as const).map((mt, i) => (
               <button
-                key={t}
+                key={mt}
                 type="button"
-                onClick={() => setMatchType(t)}
+                onClick={() => setMatchType(mt)}
                 className={`flex-1 py-2 font-semibold text-sm capitalize transition-colors duration-150 ${
                   i === 0 ? "rounded-l-lg border-r border-gray-700/50" : "rounded-r-lg"
                 } ${
-                  matchType === t
+                  matchType === mt
                     ? "bg-blue-600 text-white"
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                {t}
+                {mt === "singles" ? t('singles') : t('doubles')}
               </button>
             ))}
           </div>
@@ -214,7 +217,7 @@ export default function NewMatch() {
 
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
-            First Server
+            {t('firstServer')}
           </label>
           <div className="flex">
             {(["A", "B"] as const).map((s, i) => (
@@ -230,7 +233,7 @@ export default function NewMatch() {
                     : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                 }`}
               >
-                {s === "A" ? (teamAName || "Team A") : (teamBName || "Team B")}
+                {s === "A" ? (teamAName || t('teamA')) : (teamBName || t('teamB'))}
               </button>
             ))}
           </div>
@@ -240,15 +243,17 @@ export default function NewMatch() {
           type="submit"
           className="w-full py-3 bg-green-600 hover:bg-green-500 active:bg-green-400 rounded-lg font-bold text-lg transition-colors duration-150"
         >
-          Start Match
+          {t('startMatch')}
         </button>
 
         <Link
           to="/history"
           className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
         >
-          Match History
+          {t('matchHistory')}
         </Link>
+
+        <LanguageSwitcher />
       </form>
     </div>
   );

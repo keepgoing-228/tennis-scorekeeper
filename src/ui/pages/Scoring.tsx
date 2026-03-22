@@ -7,6 +7,7 @@ import { updateMatchStatus } from "../../storage/matchRepo.ts";
 import Scoreboard from "../components/Scoreboard.tsx";
 import ScoreButton from "../components/ScoreButton.tsx";
 import AnnotationBar from "../components/AnnotationBar.tsx";
+import { useTranslation } from "react-i18next";
 
 const WINNER_ANNOTATIONS: Set<PointLossReason> = new Set(["ACE", "WINNER"]);
 
@@ -21,6 +22,8 @@ export default function Scoring() {
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
     [allEvents],
   );
+
+  const { t } = useTranslation();
 
   // Load match state from events on mount
   useEffect(() => {
@@ -111,7 +114,7 @@ export default function Scoring() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl">Loading...</p>
+        <p className="text-xl">{t('loading')}</p>
       </div>
     );
   }
@@ -119,7 +122,7 @@ export default function Scoring() {
   if (!matchState) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl">Match not found</p>
+        <p className="text-xl">{t('matchNotFound')}</p>
       </div>
     );
   }
@@ -139,13 +142,13 @@ export default function Scoring() {
         <div className="flex items-center justify-center py-6 px-4">
           <div className="bg-green-900/60 border border-green-700/40 rounded-xl px-6 py-4 text-center">
             <p className="text-2xl font-bold text-green-200">
-              {matchState.winner === "A" ? teamAName : teamBName} wins!
+              {t('teamWins', { teamName: matchState.winner === "A" ? teamAName : teamBName })}
             </p>
             <Link
               to="/new"
               className="inline-block mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
-              New Match
+              {t('newMatch')}
             </Link>
           </div>
         </div>
@@ -190,21 +193,21 @@ export default function Scoring() {
       <div className="flex gap-px bg-gray-950">
         <button
           onClick={async () => {
-            if (window.confirm("Cancel this match and start a new one?")) {
+            if (window.confirm(t('confirmCancel'))) {
               if (id) await updateMatchStatus(id, "cancelled");
               navigate("/new");
             }
           }}
           className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 py-3.5 text-sm font-semibold text-red-400 transition-colors duration-150"
         >
-          Restart
+          {t('restart')}
         </button>
         <button
           onClick={handleUndo}
           disabled={!canUndo}
           className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed py-3.5 text-sm font-semibold text-gray-300 transition-colors duration-150"
         >
-          ↩ Undo
+          {t('undo')}
         </button>
       </div>
     </div>

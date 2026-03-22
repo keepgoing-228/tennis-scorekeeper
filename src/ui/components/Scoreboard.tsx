@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { MatchState } from "../../domain/types.ts";
 
 type Props = {
@@ -5,6 +6,7 @@ type Props = {
 };
 
 export default function Scoreboard({ state }: Props) {
+  const { t } = useTranslation();
   const teamAName = state.teams.A.players.map((p) => p.displayName).join(" / ");
   const teamBName = state.teams.B.players.map((p) => p.displayName).join(" / ");
 
@@ -12,7 +14,7 @@ export default function Scoreboard({ state }: Props) {
     <div className="bg-gray-800/80 backdrop-blur-sm px-4 py-3 space-y-1.5">
       <div className="text-sm text-yellow-400 font-semibold text-center tracking-wide">
         {state.ruleset.bestOf === "practice"
-          ? (state.ruleset.practiceMode === "first_to_3" ? "First to 3 Games" : "Practice Tiebreak")
+          ? (state.ruleset.practiceMode === "first_to_3" ? t('firstTo3Games') : t('practiceTiebreak'))
           : null}
       </div>
       <div className="flex justify-center gap-5 text-sm text-gray-400 font-mono">
@@ -37,7 +39,7 @@ export default function Scoreboard({ state }: Props) {
           )}
           <span className="text-gray-200">{teamAName}</span>
         </div>
-        <span className="text-xs text-gray-500 uppercase tracking-wider">vs</span>
+        <span className="text-xs text-gray-500 uppercase tracking-wider">{t('vs')}</span>
         <div className="flex items-center gap-2">
           <span className="text-gray-200">{teamBName}</span>
           {state.server === "B" && (
@@ -49,7 +51,7 @@ export default function Scoreboard({ state }: Props) {
       {state.sets[state.currentSetIndex].game.kind === "tiebreak" &&
         state.ruleset.bestOf !== "practice" && (
           <div className="text-xs text-yellow-400 text-center font-semibold tracking-widest">
-            TIEBREAK
+            {t('tiebreakIndicator')}
           </div>
         )}
     </div>

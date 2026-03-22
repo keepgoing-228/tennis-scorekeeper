@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import type { MatchRecord } from "../../storage/db.ts";
 import type { MatchStats, TeamStats } from "../../domain/tennis.ts";
 import { getCompletedMatches, deleteMatch, deleteAllMatches } from "../../storage/matchRepo.ts";
@@ -10,7 +11,6 @@ type MatchSummary = {
   record: MatchRecord;
   setScores: string;
   winnerName: string;
-  matchTypeLabel: string;
 };
 
 function formatDate(iso: string): string {
@@ -21,18 +21,12 @@ function formatDate(iso: string): string {
   });
 }
 
-function getMatchTypeLabel(record: MatchRecord): string {
-  if (record.ruleset.bestOf === "practice") {
-    return record.ruleset.practiceMode === "first_to_3" ? "First to 3 Games" : "Practice Tiebreak";
-  }
-  return `Best of ${record.ruleset.bestOf}`;
-}
-
 export default function MatchHistory() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [stats, setStats] = useState<Record<string, MatchStats>>({});
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function load() {
@@ -57,7 +51,6 @@ export default function MatchHistory() {
           record,
           setScores,
           winnerName,
-          matchTypeLabel: getMatchTypeLabel(record),
         });
       }
 
@@ -83,7 +76,7 @@ export default function MatchHistory() {
   }
 
   async function handleDeleteAll() {
-    if (!confirm("Delete all matches? This cannot be undone.")) return;
+    if (!confirm(t('confirmDeleteAll'))) return;
     try {
       await deleteAllMatches();
       setMatches([]);
@@ -95,7 +88,7 @@ export default function MatchHistory() {
   }
 
   async function handleDelete(matchId: string) {
-    if (!confirm("Delete this match? This cannot be undone.")) return;
+    if (!confirm(t('confirmDelete'))) return;
     try {
       await deleteMatch(matchId);
       setMatches((prev) => prev.filter((m) => m.record.matchId !== matchId));
@@ -113,7 +106,7 @@ export default function MatchHistory() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-xl">Loading...</p>
+        <p className="text-xl">{t('loading')}</p>
       </div>
     );
   }
@@ -121,15 +114,15 @@ export default function MatchHistory() {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
-        <h1 className="text-xl font-bold tracking-tight text-center">Match History</h1>
+        <h1 className="text-xl font-bold tracking-tight text-center">{t('matchHistory')}</h1>
 
         {matches.length === 0 ? (
           <p className="text-gray-500 text-center py-12 text-sm">
-            No completed matches yet.
+            {t('noMatches')}
           </p>
         ) : (
           <div className="space-y-2">
-            {matches.map(({ record, setScores, winnerName, matchTypeLabel }) => (
+            {matches.map(({ record, setScores, winnerName }) => (
               <div key={record.matchId}>
                 <div className="relative">
                   <button
@@ -140,7 +133,7 @@ export default function MatchHistory() {
                       <div>
                         <div className="font-semibold text-sm text-gray-200">
                           {record.teams.A.players.map((p) => p.displayName).join(" / ")}
-                          {" vs "}
+                          {` ${t('vs')} `}
                           {record.teams.B.players.map((p) => p.displayName).join(" / ")}
                         </div>
                         <div className="text-lg font-mono mt-1 tabular-nums">
@@ -149,9 +142,13 @@ export default function MatchHistory() {
                       </div>
                       <div className="text-right text-xs pr-7">
                         <div className="text-green-400 font-medium">
-                          {winnerName} wins
+                          {t('winnerSummary', { winnerName })}
                         </div>
-                        <div className="text-gray-500 mt-0.5">{matchTypeLabel}</div>
+                        <div className="text-gray-500 mt-0.5">
+                          {record.ruleset.bestOf === "practice"
+                            ? (record.ruleset.practiceMode === "first_to_3" ? t("firstTo3Games") : t("practiceTiebreak"))
+                            : t("bestOfN", { n: record.ruleset.bestOf })}
+                        </div>
                         <div className="text-gray-600 mt-0.5">
                           {formatDate(record.createdAt)}
                         </div>
@@ -164,7 +161,7 @@ export default function MatchHistory() {
                       handleDelete(record.matchId);
                     }}
                     className="absolute top-2.5 right-2.5 p-1 text-gray-600 hover:text-red-400 transition-colors duration-150"
-                    aria-label="Delete match"
+                    aria-label={t('deleteMatch')}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -202,7 +199,7 @@ export default function MatchHistory() {
             onClick={handleDeleteAll}
             className="block w-full text-center text-sm text-red-500/60 hover:text-red-400 transition-colors"
           >
-            Delete All Matches
+            {t('deleteAll')}
           </button>
         )}
 
@@ -210,7 +207,7 @@ export default function MatchHistory() {
           to="/new"
           className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
         >
-          New Match
+          {t('newMatch')}
         </Link>
       </div>
     </div>
@@ -223,20 +220,21 @@ type StatsDetailProps = {
   teamBName: string;
 };
 
-const STAT_LABELS: { key: keyof TeamStats; label: string }[] = [
-  { key: "totalPointsWon", label: "Total Points Won" },
-  { key: "ACE", label: "Aces" },
-  { key: "DOUBLE_FAULT", label: "Double Faults" },
-  { key: "FOREHAND_ERROR", label: "Forehand Errors" },
-  { key: "BACKHAND_ERROR", label: "Backhand Errors" },
-  { key: "VOLLEY_ERROR", label: "Volley Errors" },
-  { key: "OUT_OF_BOUNDS", label: "Out of Bounds" },
-  { key: "NET_ERROR", label: "Net Errors" },
-  { key: "WINNER", label: "Winners" },
-  { key: "unannotated", label: "Unannotated" },
+const STAT_LABELS: { key: keyof TeamStats; labelKey: string }[] = [
+  { key: "totalPointsWon", labelKey: "statTotalPoints" },
+  { key: "ACE", labelKey: "statAces" },
+  { key: "DOUBLE_FAULT", labelKey: "statDoubleFaults" },
+  { key: "FOREHAND_ERROR", labelKey: "statForehandErrors" },
+  { key: "BACKHAND_ERROR", labelKey: "statBackhandErrors" },
+  { key: "VOLLEY_ERROR", labelKey: "statVolleyErrors" },
+  { key: "OUT_OF_BOUNDS", labelKey: "statOutOfBounds" },
+  { key: "NET_ERROR", labelKey: "statNetErrors" },
+  { key: "WINNER", labelKey: "statWinners" },
+  { key: "unannotated", labelKey: "statUnannotated" },
 ];
 
 function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
+  const { t } = useTranslation();
   return (
     <div className="bg-gray-800/60 rounded-b-lg px-3 py-2 mt-px border-x border-b border-gray-700/30">
       <table className="w-full text-xs">
@@ -248,14 +246,14 @@ function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
           </tr>
         </thead>
         <tbody>
-          {STAT_LABELS.map(({ key, label }, i) => (
+          {STAT_LABELS.map(({ key, labelKey }, i) => (
             <tr
               key={key}
               className={`border-b border-gray-800/50 ${
                 i % 2 === 0 ? "bg-gray-800/30" : ""
               }`}
             >
-              <td className="py-1.5 text-gray-400">{label}</td>
+              <td className="py-1.5 text-gray-400">{t(labelKey)}</td>
               <td className="text-center font-mono tabular-nums">{stats.A[key]}</td>
               <td className="text-center font-mono tabular-nums">{stats.B[key]}</td>
             </tr>

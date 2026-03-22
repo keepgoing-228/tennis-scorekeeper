@@ -1,17 +1,18 @@
+import { useTranslation } from "react-i18next";
 import type { PointLossReason, TeamSide } from "../../domain/types.ts";
 
-const WINNER_REASONS: { value: PointLossReason; label: string }[] = [
-  { value: "ACE", label: "Ace" },
-  { value: "WINNER", label: "Winner" },
+const WINNER_REASONS: { value: PointLossReason; labelKey: string }[] = [
+  { value: "ACE", labelKey: "ace" },
+  { value: "WINNER", labelKey: "winner" },
 ];
 
-const ERROR_REASONS: { value: PointLossReason; label: string }[] = [
-  { value: "DOUBLE_FAULT", label: "Double Fault" },
-  { value: "FOREHAND_ERROR", label: "FH Error" },
-  { value: "BACKHAND_ERROR", label: "BH Error" },
-  { value: "VOLLEY_ERROR", label: "Volley" },
-  { value: "OUT_OF_BOUNDS", label: "Out" },
-  { value: "NET_ERROR", label: "Net" },
+const ERROR_REASONS: { value: PointLossReason; labelKey: string }[] = [
+  { value: "DOUBLE_FAULT", labelKey: "doubleFault" },
+  { value: "FOREHAND_ERROR", labelKey: "fhError" },
+  { value: "BACKHAND_ERROR", labelKey: "bhError" },
+  { value: "VOLLEY_ERROR", labelKey: "volleyError" },
+  { value: "OUT_OF_BOUNDS", labelKey: "outError" },
+  { value: "NET_ERROR", labelKey: "netError" },
 ];
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export default function AnnotationBar({ side, disabled, onSelect }: Props) {
+  const { t } = useTranslation();
   const chipBase =
     "w-full min-h-[44px] py-2 text-xs font-medium rounded-lg border transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
   const winnerStyle =
@@ -32,7 +34,7 @@ export default function AnnotationBar({ side, disabled, onSelect }: Props) {
 
   return (
     <div className="bg-gray-950/60 border-t border-gray-700/40 px-2 py-2 flex flex-col gap-1.5">
-      {WINNER_REASONS.map(({ value, label }) => (
+      {WINNER_REASONS.map(({ value, labelKey }) => (
         <button
           key={value}
           type="button"
@@ -40,11 +42,11 @@ export default function AnnotationBar({ side, disabled, onSelect }: Props) {
           disabled={disabled}
           className={`${chipBase} ${winnerStyle}`}
         >
-          {label}
+          {t(labelKey)}
         </button>
       ))}
       <div className="h-px bg-gray-700/30 my-0.5" />
-      {ERROR_REASONS.map(({ value, label }) => (
+      {ERROR_REASONS.map(({ value, labelKey }) => (
         <button
           key={value}
           type="button"
@@ -52,7 +54,7 @@ export default function AnnotationBar({ side, disabled, onSelect }: Props) {
           disabled={disabled}
           className={`${chipBase} ${errorStyle}`}
         >
-          {label}
+          {t(labelKey)}
         </button>
       ))}
     </div>
