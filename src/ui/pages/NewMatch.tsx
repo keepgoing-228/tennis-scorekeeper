@@ -4,6 +4,7 @@ import type { BestOf, Ruleset, Team } from "../../domain/types.ts";
 import { createMatch } from "../../storage/matchRepo.ts";
 import { appendEvent } from "../../storage/eventRepo.ts";
 import type { MatchCreatedEvent } from "../../domain/types.ts";
+import { uuid } from "../../utils/uuid.ts";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher.tsx";
 
@@ -21,7 +22,7 @@ export default function NewMatch() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const matchId = crypto.randomUUID();
+    const matchId = uuid();
     const ruleset: Ruleset = {
       bestOf,
       tiebreak,
@@ -30,11 +31,11 @@ export default function NewMatch() {
     };
     const teamA: Team = {
       teamId: "A",
-      players: [{ playerId: crypto.randomUUID(), displayName: teamAName }],
+      players: [{ playerId: uuid(), displayName: teamAName }],
     };
     const teamB: Team = {
       teamId: "B",
-      players: [{ playerId: crypto.randomUUID(), displayName: teamBName }],
+      players: [{ playerId: uuid(), displayName: teamBName }],
     };
 
     const now = new Date().toISOString();
@@ -50,7 +51,7 @@ export default function NewMatch() {
     });
 
     const event: MatchCreatedEvent = {
-      eventId: crypto.randomUUID(),
+      eventId: uuid(),
       matchId,
       createdAt: now,
       seq: 0,

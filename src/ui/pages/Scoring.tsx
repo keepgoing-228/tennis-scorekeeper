@@ -8,6 +8,7 @@ import Scoreboard from "../components/Scoreboard.tsx";
 import ScoreButton from "../components/ScoreButton.tsx";
 import AnnotationBar from "../components/AnnotationBar.tsx";
 import { useTranslation } from "react-i18next";
+import { uuid } from "../../utils/uuid.ts";
 
 const WINNER_ANNOTATIONS: Set<PointLossReason> = new Set(["ACE", "WINNER"]);
 
@@ -46,7 +47,7 @@ export default function Scoring() {
 
     const seq = await getNextSeq(id);
     const event: PointWonEvent = {
-      eventId: crypto.randomUUID(),
+      eventId: uuid(),
       matchId: id,
       createdAt: new Date().toISOString(),
       seq,
@@ -87,7 +88,7 @@ export default function Scoring() {
 
     const seq = await getNextSeq(id);
     const undoEvent: UndoEvent = {
-      eventId: crypto.randomUUID(),
+      eventId: uuid(),
       matchId: id,
       createdAt: new Date().toISOString(),
       seq,
