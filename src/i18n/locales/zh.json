@@ -1,7 +1,7 @@
 {
   "appTitle": "網球記分員",
-  "teamA": "隊伍 A",
-  "teamB": "隊伍 B",
+  "teamA": "甲方",
+  "teamB": "乙方",
   "bestOf": "賽制",
   "practice": "練習",
   "practiceMode": "練習模式",
