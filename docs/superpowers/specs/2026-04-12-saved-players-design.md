@@ -84,8 +84,9 @@ The player name input area is replaced with a card-based selection interface:
 
 ### Capacity Rules
 
-- **Singles:** each team holds 1 player (max 2 total)
-- **Doubles:** each team holds 2 players (max 4 total)
+- **Singles:** each team must have exactly 1 player (max 2 total)
+- **Doubles:** each team must have exactly 2 players (max 4 total)
+- Match cannot start until both teams are full
 - When both teams are full, all remaining cards in the pool are disabled
 - When a team is full, its option in the popup is disabled
 
