@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import NavBar from "../components/NavBar.tsx";
 import type { MatchRecord } from "../../storage/db.ts";
 import type { MatchStats, TeamStats } from "../../domain/tennis.ts";
 import { getCompletedMatches, deleteMatch, deleteAllMatches } from "../../storage/matchRepo.ts";
@@ -203,12 +203,7 @@ export default function MatchHistory() {
           </button>
         )}
 
-        <Link
-          to="/new"
-          className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
-        >
-          {t('newMatch')}
-        </Link>
+        <NavBar />
       </div>
     </div>
   );

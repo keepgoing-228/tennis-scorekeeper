@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import NavBar from "../components/NavBar.tsx";
 import type { SavedPlayer } from "../../storage/db.ts";
 import {
   getAllPlayers,
@@ -175,12 +175,7 @@ export default function Players() {
           </div>
         )}
 
-        <Link
-          to="/new"
-          className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
-        >
-          {t("newMatch")}
-        </Link>
+        <NavBar />
 
         <LanguageSwitcher />
       </div>

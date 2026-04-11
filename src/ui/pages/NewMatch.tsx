@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
+import NavBar from "../components/NavBar.tsx";
 import type { BestOf, Ruleset, Team } from "../../domain/types.ts";
 import { createMatch } from "../../storage/matchRepo.ts";
 import { appendEvent } from "../../storage/eventRepo.ts";
@@ -247,12 +248,7 @@ export default function NewMatch() {
           {t('startMatch')}
         </button>
 
-        <Link
-          to="/history"
-          className="block text-center text-sm text-gray-500 hover:text-gray-400 transition-colors"
-        >
-          {t('matchHistory')}
-        </Link>
+        <NavBar />
 
         <LanguageSwitcher />
       </form>
