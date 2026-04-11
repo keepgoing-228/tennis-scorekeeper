@@ -51,5 +51,19 @@
   "statWinners": "致勝分",
   "statUnannotated": "未標註",
   "deleteMatch": "刪除比賽",
-  "swap": "⇄ 換邊"
+  "swap": "⇄ 換邊",
+  "players": "球員",
+  "managePlayers": "管理球員",
+  "addPlayer": "新增",
+  "editPlayer": "編輯",
+  "deletePlayer": "刪除",
+  "playerNamePlaceholder": "球員名稱",
+  "noPlayers": "尚未儲存球員。在上方新增你的第一位球員。",
+  "duplicatePlayerWarning": "已有同名球員。",
+  "savedPlayers": "已儲存球員",
+  "noSavedPlayers": "尚未儲存球員。",
+  "goToManagePlayers": "管理球員",
+  "manualInput": "或手動輸入名字",
+  "selectTeam": "選擇隊伍",
+  "teamFull": "已滿"
 }

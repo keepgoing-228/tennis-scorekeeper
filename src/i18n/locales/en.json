@@ -51,5 +51,19 @@
   "statWinners": "Winners",
   "statUnannotated": "Unannotated",
   "deleteMatch": "Delete match",
-  "swap": "⇄ Swap"
+  "swap": "⇄ Swap",
+  "players": "Players",
+  "managePlayers": "Manage Players",
+  "addPlayer": "Add",
+  "editPlayer": "Edit",
+  "deletePlayer": "Delete",
+  "playerNamePlaceholder": "Player name",
+  "noPlayers": "No players saved yet. Add your first player above.",
+  "duplicatePlayerWarning": "A player with this name already exists.",
+  "savedPlayers": "Saved Players",
+  "noSavedPlayers": "No saved players yet.",
+  "goToManagePlayers": "Manage Players",
+  "manualInput": "Or enter names manually",
+  "selectTeam": "Select team",
+  "teamFull": "Full"
 }

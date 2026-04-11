@@ -51,5 +51,19 @@
   "statWinners": "ウィナー",
   "statUnannotated": "未記録",
   "deleteMatch": "試合を削除",
-  "swap": "⇄ 入替"
+  "swap": "⇄ 入替",
+  "players": "選手",
+  "managePlayers": "選手管理",
+  "addPlayer": "追加",
+  "editPlayer": "編集",
+  "deletePlayer": "削除",
+  "playerNamePlaceholder": "選手名",
+  "noPlayers": "選手がまだ登録されていません。上から最初の選手を追加してください。",
+  "duplicatePlayerWarning": "同名の選手がすでに存在します。",
+  "savedPlayers": "登録済み選手",
+  "noSavedPlayers": "登録済みの選手がいません。",
+  "goToManagePlayers": "選手管理",
+  "manualInput": "または手動で名前を入力",
+  "selectTeam": "チームを選択",
+  "teamFull": "満員"
 }
