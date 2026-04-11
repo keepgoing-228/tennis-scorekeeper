@@ -35,24 +35,36 @@ export default function Players() {
       return;
     }
 
-    await addPlayer(trimmed);
-    setNewName("");
-    setDuplicateWarning(false);
-    setPlayers(await getAllPlayers());
+    try {
+      await addPlayer(trimmed);
+      setNewName("");
+      setDuplicateWarning(false);
+      setPlayers(await getAllPlayers());
+    } catch (err) {
+      console.error("Failed to add player:", err);
+    }
   }
 
   async function handleUpdate(playerId: string) {
     const trimmed = editingName.trim();
     if (!trimmed) return;
-    await updatePlayer(playerId, trimmed);
-    setEditingId(null);
-    setEditingName("");
-    setPlayers(await getAllPlayers());
+    try {
+      await updatePlayer(playerId, trimmed);
+      setEditingId(null);
+      setEditingName("");
+      setPlayers(await getAllPlayers());
+    } catch (err) {
+      console.error("Failed to update player:", err);
+    }
   }
 
   async function handleDelete(playerId: string) {
-    await deletePlayer(playerId);
-    setPlayers(await getAllPlayers());
+    try {
+      await deletePlayer(playerId);
+      setPlayers(await getAllPlayers());
+    } catch (err) {
+      console.error("Failed to delete player:", err);
+    }
   }
 
   function startEdit(player: SavedPlayer) {
