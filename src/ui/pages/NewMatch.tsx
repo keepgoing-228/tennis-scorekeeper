@@ -71,7 +71,7 @@ export default function NewMatch() {
 
   const teamAPlayers = getTeamPlayers("A");
   const teamBPlayers = getTeamPlayers("B");
-  const canStart = teamAPlayers.length > 0 && teamBPlayers.length > 0;
+  const canStart = teamAPlayers.length >= maxPerTeam && teamBPlayers.length >= maxPerTeam;
 
   // Display names for first server buttons
   const teamADisplay = teamAPlayers.map((p) => p.displayName).join(" / ") || t("teamA");
