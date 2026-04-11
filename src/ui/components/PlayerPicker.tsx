@@ -12,6 +12,7 @@ type Props = {
   teamB: SavedPlayer[];
   onAssign: (player: SavedPlayer, team: TeamSide) => void;
   onRemove: (playerId: string, team: TeamSide) => void;
+  onEmpty?: () => void;
 };
 
 export default function PlayerPicker({
@@ -20,13 +21,17 @@ export default function PlayerPicker({
   teamB,
   onAssign,
   onRemove,
+  onEmpty,
 }: Props) {
   const [players, setPlayers] = useState<SavedPlayer[]>([]);
   const [popupPlayerId, setPopupPlayerId] = useState<string | null>(null);
   const { t } = useTranslation();
 
   useEffect(() => {
-    getAllPlayers().then(setPlayers);
+    getAllPlayers().then((result) => {
+      setPlayers(result);
+      if (result.length === 0) onEmpty?.();
+    });
   }, []);
 
   const selectedIds = new Set([

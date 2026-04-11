@@ -155,6 +155,7 @@ export default function NewMatch() {
           teamB={pickerTeamB}
           onAssign={handleAssign}
           onRemove={handleRemove}
+          onEmpty={() => setShowManualInput(true)}
         />
 
         {/* Manual input fallback */}
