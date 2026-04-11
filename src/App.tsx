@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router";
 import NewMatch from "./ui/pages/NewMatch.tsx";
 import Scoring from "./ui/pages/Scoring.tsx";
 import MatchHistory from "./ui/pages/MatchHistory.tsx";
+import Players from "./ui/pages/Players.tsx";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <Route path="/new" element={<NewMatch />} />
         <Route path="/match/:id" element={<Scoring />} />
         <Route path="/history" element={<MatchHistory />} />
+        <Route path="/players" element={<Players />} />
       </Routes>
     </HashRouter>
   );
