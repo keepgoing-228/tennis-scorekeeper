@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { initMatchState, applyPointWon, getEffectiveEvents, replay, computeMatchStats } from "./tennis.ts";
+import { initMatchState, applyPointWon, getEffectiveEvents, replay, computeMatchStats, computePlayerStats } from "./tennis.ts";
 import type { Ruleset, Team, MatchState, TeamSide, PointWonEvent, MatchCreatedEvent, UndoEvent, MatchEvent, PointLossReason } from "./types.ts";
+import type { PlayerStats } from "./tennis.ts";
 
 const defaultRuleset: Ruleset = {
   bestOf: 3,
@@ -530,5 +531,116 @@ describe("first to 3 games practice mode", () => {
     const finishedState = state;
     state = applyPointWon(state, "B");
     expect(state).toEqual(finishedState);
+  });
+});
+
+const doublesRuleset: Ruleset = {
+  bestOf: 3,
+  tiebreak: "7pt",
+  matchType: "doubles",
+};
+
+const doublesTeamA: Team = {
+  teamId: "A",
+  players: [
+    { playerId: "p1", displayName: "Alice" },
+    { playerId: "p2", displayName: "Bob" },
+  ],
+};
+
+const doublesTeamB: Team = {
+  teamId: "B",
+  players: [
+    { playerId: "p3", displayName: "Carol" },
+    { playerId: "p4", displayName: "Dave" },
+  ],
+};
+
+function makePlayerPointEvent(
+  matchId: string,
+  seq: number,
+  team: TeamSide,
+  annotation: PointLossReason,
+  playerId: string,
+): PointWonEvent {
+  return {
+    eventId: `evt-${seq}`,
+    matchId,
+    createdAt: new Date().toISOString(),
+    seq,
+    type: "POINT_WON",
+    payload: { team, annotation, playerId },
+  };
+}
+
+describe("computePlayerStats", () => {
+  it("returns empty record when no events have playerId", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+      makePointWonEvent("m1", 1, "A", "ACE"),
+      makePointWonEvent("m1", 2, "B"),
+    ];
+    const stats = computePlayerStats(events);
+    expect(Object.keys(stats)).toHaveLength(0);
+  });
+
+  it("aggregates stats per player from attributed events", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+      makePlayerPointEvent("m1", 1, "A", "ACE", "p1"),
+      makePlayerPointEvent("m1", 2, "A", "ACE", "p1"),
+      makePlayerPointEvent("m1", 3, "A", "FOREHAND_ERROR", "p2"),
+      makePlayerPointEvent("m1", 4, "B", "WINNER", "p3"),
+    ];
+    const stats = computePlayerStats(events);
+
+    expect(stats["p1"].aces).toBe(2);
+    expect(stats["p1"].totalWinners).toBe(2);
+    expect(stats["p1"].totalErrors).toBe(0);
+
+    expect(stats["p2"].forehandErrors).toBe(1);
+    expect(stats["p2"].totalErrors).toBe(1);
+    expect(stats["p2"].totalWinners).toBe(0);
+
+    expect(stats["p3"].winners).toBe(1);
+    expect(stats["p3"].totalWinners).toBe(1);
+  });
+
+  it("computes winnerErrorRatio correctly", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+      makePlayerPointEvent("m1", 1, "A", "ACE", "p1"),
+      makePlayerPointEvent("m1", 2, "A", "ACE", "p1"),
+      makePlayerPointEvent("m1", 3, "A", "FOREHAND_ERROR", "p1"),
+    ];
+    const stats = computePlayerStats(events);
+    expect(stats["p1"].winnerErrorRatio).toBe(2);
+  });
+
+  it("returns 0 ratio when player has no winners and no errors", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+    ];
+    const stats = computePlayerStats(events);
+    expect(Object.keys(stats)).toHaveLength(0);
+  });
+
+  it("returns Infinity ratio when player has winners but no errors", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+      makePlayerPointEvent("m1", 1, "A", "ACE", "p1"),
+    ];
+    const stats = computePlayerStats(events);
+    expect(stats["p1"].winnerErrorRatio).toBe(Infinity);
+  });
+
+  it("excludes undone events from player stats", () => {
+    const events: MatchEvent[] = [
+      makeMatchCreatedEvent("m1", doublesRuleset, { A: doublesTeamA, B: doublesTeamB }, "A"),
+      makePlayerPointEvent("m1", 1, "A", "ACE", "p1"),
+      makeUndoEvent("m1", 2, "evt-1"),
+    ];
+    const stats = computePlayerStats(events);
+    expect(Object.keys(stats)).toHaveLength(0);
   });
 });

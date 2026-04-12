@@ -309,3 +309,89 @@ export function computeMatchStats(events: MatchEvent[]): MatchStats {
 
   return stats;
 }
+
+export type PlayerStats = {
+  aces: number;
+  doubleFaults: number;
+  forehandWinners: number;
+  backhandWinners: number;
+  forehandErrors: number;
+  backhandErrors: number;
+  volleyErrors: number;
+  outOfBounds: number;
+  netErrors: number;
+  winners: number;
+  totalWinners: number;
+  totalErrors: number;
+  winnerErrorRatio: number;
+};
+
+function emptyPlayerStats(): PlayerStats {
+  return {
+    aces: 0,
+    doubleFaults: 0,
+    forehandWinners: 0,
+    backhandWinners: 0,
+    forehandErrors: 0,
+    backhandErrors: 0,
+    volleyErrors: 0,
+    outOfBounds: 0,
+    netErrors: 0,
+    winners: 0,
+    totalWinners: 0,
+    totalErrors: 0,
+    winnerErrorRatio: 0,
+  };
+}
+
+const WINNER_ANNOTATIONS: Set<PointLossReason> = new Set(["ACE", "WINNER"]);
+const ERROR_ANNOTATIONS: Set<PointLossReason> = new Set([
+  "DOUBLE_FAULT",
+  "FOREHAND_ERROR",
+  "BACKHAND_ERROR",
+  "VOLLEY_ERROR",
+  "OUT_OF_BOUNDS",
+  "NET_ERROR",
+]);
+
+const ANNOTATION_TO_STAT: Record<PointLossReason, keyof PlayerStats> = {
+  ACE: "aces",
+  DOUBLE_FAULT: "doubleFaults",
+  FOREHAND_ERROR: "forehandErrors",
+  BACKHAND_ERROR: "backhandErrors",
+  VOLLEY_ERROR: "volleyErrors",
+  OUT_OF_BOUNDS: "outOfBounds",
+  NET_ERROR: "netErrors",
+  WINNER: "winners",
+};
+
+export function computePlayerStats(events: MatchEvent[]): Record<string, PlayerStats> {
+  const effective = getEffectiveEvents(events);
+  const stats: Record<string, PlayerStats> = {};
+
+  for (const event of effective) {
+    if (event.type === "POINT_WON" && event.payload.playerId && event.payload.annotation) {
+      const { playerId, annotation } = event.payload;
+
+      if (!stats[playerId]) {
+        stats[playerId] = emptyPlayerStats();
+      }
+
+      const statKey = ANNOTATION_TO_STAT[annotation];
+      (stats[playerId][statKey] as number) += 1;
+
+      if (WINNER_ANNOTATIONS.has(annotation)) {
+        stats[playerId].totalWinners += 1;
+      } else if (ERROR_ANNOTATIONS.has(annotation)) {
+        stats[playerId].totalErrors += 1;
+      }
+
+      stats[playerId].winnerErrorRatio =
+        stats[playerId].totalErrors === 0
+          ? (stats[playerId].totalWinners > 0 ? Infinity : 0)
+          : stats[playerId].totalWinners / stats[playerId].totalErrors;
+    }
+  }
+
+  return stats;
+}
