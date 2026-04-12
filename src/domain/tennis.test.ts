@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { initMatchState, applyPointWon, getEffectiveEvents, replay, computeMatchStats, computePlayerStats } from "./tennis.ts";
 import type { Ruleset, Team, MatchState, TeamSide, PointWonEvent, MatchCreatedEvent, UndoEvent, MatchEvent, PointLossReason } from "./types.ts";
-import type { PlayerStats } from "./tennis.ts";
 
 const defaultRuleset: Ruleset = {
   bestOf: 3,
