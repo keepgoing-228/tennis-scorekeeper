@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import NavBar from "../components/NavBar.tsx";
 import type { MatchRecord } from "../../storage/db.ts";
-import type { MatchStats, TeamStats } from "../../domain/tennis.ts";
+import type { MatchStats, TeamStats, PlayerStats } from "../../domain/tennis.ts";
 import { getCompletedMatches, deleteMatch, deleteAllMatches } from "../../storage/matchRepo.ts";
 import { getMatchEvents } from "../../storage/eventRepo.ts";
-import { computeMatchStats, getEffectiveEvents, replay } from "../../domain/tennis.ts";
+import { computeMatchStats, computePlayerStats, getEffectiveEvents, replay } from "../../domain/tennis.ts";
+import type { Team } from "../../domain/types.ts";
 
 type MatchSummary = {
   record: MatchRecord;
@@ -25,6 +26,7 @@ export default function MatchHistory() {
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [stats, setStats] = useState<Record<string, MatchStats>>({});
+  const [playerStatsMap, setPlayerStatsMap] = useState<Record<string, Record<string, PlayerStats>>>({});
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
 
@@ -70,6 +72,8 @@ export default function MatchHistory() {
       const events = await getMatchEvents(matchId);
       const matchStats = computeMatchStats(events);
       setStats((prev) => ({ ...prev, [matchId]: matchStats }));
+      const pStats = computePlayerStats(events);
+      setPlayerStatsMap((prev) => ({ ...prev, [matchId]: pStats }));
     }
 
     setExpandedId(matchId);
@@ -82,6 +86,7 @@ export default function MatchHistory() {
       setMatches([]);
       setExpandedId(null);
       setStats({});
+      setPlayerStatsMap({});
     } catch (err) {
       console.error("Failed to delete all matches:", err);
     }
@@ -94,6 +99,11 @@ export default function MatchHistory() {
       setMatches((prev) => prev.filter((m) => m.record.matchId !== matchId));
       if (expandedId === matchId) setExpandedId(null);
       setStats((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
+      setPlayerStatsMap((prev) => {
         const next = { ...prev };
         delete next[matchId];
         return next;
@@ -187,6 +197,8 @@ export default function MatchHistory() {
                     teamBName={record.teams.B.players
                       .map((p) => p.displayName)
                       .join(" / ")}
+                    teams={record.ruleset.matchType === "doubles" ? record.teams : undefined}
+                    playerStats={playerStatsMap[record.matchId]}
                   />
                 )}
               </div>
@@ -213,6 +225,8 @@ type StatsDetailProps = {
   stats: MatchStats;
   teamAName: string;
   teamBName: string;
+  teams?: { A: Team; B: Team };
+  playerStats?: Record<string, PlayerStats>;
 };
 
 const STAT_LABELS: { key: keyof TeamStats; labelKey: string }[] = [
@@ -228,8 +242,53 @@ const STAT_LABELS: { key: keyof TeamStats; labelKey: string }[] = [
   { key: "unannotated", labelKey: "statUnannotated" },
 ];
 
-function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
+function PlayerStatsCard({ name, stats }: { name: string; stats: PlayerStats | undefined }) {
   const { t } = useTranslation();
+  const s = stats ?? {
+    aces: 0, doubleFaults: 0, forehandWinners: 0, backhandWinners: 0,
+    forehandErrors: 0, backhandErrors: 0, volleyErrors: 0, outOfBounds: 0,
+    netErrors: 0, winners: 0, totalWinners: 0, totalErrors: 0, winnerErrorRatio: 0,
+  };
+  const ratioDisplay = s.winnerErrorRatio === Infinity ? "∞" : s.winnerErrorRatio.toFixed(2);
+  const ratioColor =
+    s.totalWinners === 0 && s.totalErrors === 0
+      ? "text-gray-400"
+      : s.winnerErrorRatio >= 1 ? "text-green-400" : "text-red-400";
+
+  return (
+    <div className="bg-gray-800/40 rounded-md px-2.5 py-2 mb-1.5">
+      <div className="font-semibold text-xs text-gray-200 mb-1.5">{name}</div>
+      <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+        <div>
+          <div className="text-green-400 font-bold text-sm">{s.aces}</div>
+          <div className="text-gray-500">{t("statAces")}</div>
+        </div>
+        <div>
+          <div className="text-green-400 font-bold text-sm">{s.totalWinners}</div>
+          <div className="text-gray-500">{t("totalWinners")}</div>
+        </div>
+        <div>
+          <div className="text-red-400 font-bold text-sm">{s.totalErrors}</div>
+          <div className="text-gray-500">{t("totalErrors")}</div>
+        </div>
+      </div>
+      <div className="flex justify-between mt-1 pt-1 border-t border-gray-700/30 text-[10px] text-gray-500">
+        <span>{t("fhWinners")}: {s.forehandWinners} | {t("bhWinners")}: {s.backhandWinners}</span>
+      </div>
+      <div className="flex justify-between text-[10px] text-gray-500">
+        <span>{t("fhErrors")}: {s.forehandErrors} | {t("bhErrors")}: {s.backhandErrors}</span>
+      </div>
+      <div className="text-[10px] text-gray-400 mt-0.5">
+        {t("winnerErrorRatio")}: <span className={`font-bold ${ratioColor}`}>{ratioDisplay}</span>
+      </div>
+    </div>
+  );
+}
+
+function StatsDetail({ stats, teamAName, teamBName, teams, playerStats }: StatsDetailProps) {
+  const { t } = useTranslation();
+  const hasPlayerStats = teams && playerStats && Object.keys(playerStats).length > 0;
+
   return (
     <div className="bg-gray-800/60 rounded-b-lg px-3 py-2 mt-px border-x border-b border-gray-700/30">
       <table className="w-full text-xs">
@@ -255,6 +314,24 @@ function StatsDetail({ stats, teamAName, teamBName }: StatsDetailProps) {
           ))}
         </tbody>
       </table>
+
+      {hasPlayerStats && (
+        <div className="mt-3 pt-2 border-t border-gray-700/30">
+          <div className="text-xs font-semibold text-gray-400 text-center mb-2">{t("playerStats")}</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              {teams.A.players.map((p) => (
+                <PlayerStatsCard key={p.playerId} name={p.displayName} stats={playerStats[p.playerId]} />
+              ))}
+            </div>
+            <div>
+              {teams.B.players.map((p) => (
+                <PlayerStatsCard key={p.playerId} name={p.displayName} stats={playerStats[p.playerId]} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
