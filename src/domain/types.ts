@@ -80,7 +80,7 @@ export type MatchCreatedEvent = BaseEvent & {
 
 export type PointWonEvent = BaseEvent & {
   type: "POINT_WON";
-  payload: { team: TeamSide; annotation?: PointLossReason };
+  payload: { team: TeamSide; annotation?: PointLossReason; playerId?: string };
 };
 
 export type UndoEvent = BaseEvent & {
