@@ -7,6 +7,7 @@ import { updateMatchStatus } from "../../storage/matchRepo.ts";
 import Scoreboard from "../components/Scoreboard.tsx";
 import ScoreButton from "../components/ScoreButton.tsx";
 import AnnotationBar from "../components/AnnotationBar.tsx";
+import PlayerAttributionPopup from "../components/PlayerAttributionPopup.tsx";
 import { useTranslation } from "react-i18next";
 import { uuid } from "../../utils/uuid.ts";
 
@@ -19,6 +20,11 @@ export default function Scoring() {
   const [allEvents, setAllEvents] = useState<MatchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [swapped, setSwapped] = useState(false);
+  const [pendingAnnotation, setPendingAnnotation] = useState<{
+    side: TeamSide;
+    scoringTeam: TeamSide;
+    annotation: PointLossReason;
+  } | null>(null);
 
   const canUndo = useMemo(
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
@@ -43,17 +49,21 @@ export default function Scoring() {
     load();
   }, [id]);
 
-  async function handleScore(team: TeamSide, annotation?: PointLossReason) {
+  async function handleScore(team: TeamSide, annotation?: PointLossReason, playerId?: string) {
     if (!matchState || matchState.status === "finished" || !id) return;
 
     const seq = await getNextSeq(id);
+    const payload: PointWonEvent["payload"] = { team };
+    if (annotation) payload.annotation = annotation;
+    if (playerId) payload.playerId = playerId;
+
     const event: PointWonEvent = {
       eventId: uuid(),
       matchId: id,
       createdAt: new Date().toISOString(),
       seq,
       type: "POINT_WON",
-      payload: annotation ? { team, annotation } : { team },
+      payload,
     };
 
     // Persist first
@@ -76,7 +86,25 @@ export default function Scoring() {
     const scoringTeam = WINNER_ANNOTATIONS.has(reason)
       ? side
       : side === "A" ? "B" : "A";
-    handleScore(scoringTeam, reason);
+
+    const isDoubles = matchState?.ruleset.matchType === "doubles";
+    if (isDoubles) {
+      setPendingAnnotation({ side, scoringTeam, annotation: reason });
+    } else {
+      handleScore(scoringTeam, reason);
+    }
+  }
+
+  function handlePlayerSelected(playerId: string) {
+    if (!pendingAnnotation) return;
+    handleScore(pendingAnnotation.scoringTeam, pendingAnnotation.annotation, playerId);
+    setPendingAnnotation(null);
+  }
+
+  function handleSkipAttribution() {
+    if (!pendingAnnotation) return;
+    handleScore(pendingAnnotation.scoringTeam, pendingAnnotation.annotation);
+    setPendingAnnotation(null);
   }
 
   async function handleUndo() {
@@ -195,6 +223,15 @@ export default function Scoring() {
           </div>
         );
       })()}
+
+      {pendingAnnotation && matchState && (
+        <PlayerAttributionPopup
+          players={matchState.teams[pendingAnnotation.side].players}
+          annotation={pendingAnnotation.annotation}
+          onSelect={handlePlayerSelected}
+          onSkip={handleSkipAttribution}
+        />
+      )}
 
       {/* Bottom action buttons */}
       <div className="flex gap-px bg-gray-950">
