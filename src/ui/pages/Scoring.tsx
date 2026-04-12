@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import type { MatchState, PointWonEvent, UndoEvent, MatchEvent, TeamSide, PointLossReason } from "../../domain/types.ts";
-import { applyPointWon, replay, getEffectiveEvents } from "../../domain/tennis.ts";
+import { applyPointWon, replay, getEffectiveEvents, computePlayerStats } from "../../domain/tennis.ts";
+import StatsDrawer from "../components/StatsDrawer.tsx";
 import { getMatchEvents, appendEvent, getNextSeq } from "../../storage/eventRepo.ts";
 import { updateMatchStatus } from "../../storage/matchRepo.ts";
 import Scoreboard from "../components/Scoreboard.tsx";
@@ -25,9 +26,15 @@ export default function Scoring() {
     scoringTeam: TeamSide;
     annotation: PointLossReason;
   } | null>(null);
+  const [showStats, setShowStats] = useState(false);
 
   const canUndo = useMemo(
     () => getEffectiveEvents(allEvents).some((e) => e.type === "POINT_WON"),
+    [allEvents],
+  );
+
+  const playerStats = useMemo(
+    () => computePlayerStats(allEvents),
     [allEvents],
   );
 
@@ -252,6 +259,14 @@ export default function Scoring() {
         >
           {t('swap')}
         </button>
+        {matchState.ruleset.matchType === "doubles" && (
+          <button
+            onClick={() => setShowStats(true)}
+            className="flex-1 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 py-3.5 text-sm font-semibold text-green-400 transition-colors duration-150"
+          >
+            {t('stats')}
+          </button>
+        )}
         <button
           onClick={handleUndo}
           disabled={!canUndo}
@@ -260,6 +275,13 @@ export default function Scoring() {
           {t('undo')}
         </button>
       </div>
+      {showStats && matchState.ruleset.matchType === "doubles" && (
+        <StatsDrawer
+          teams={matchState.teams}
+          playerStats={playerStats}
+          onClose={() => setShowStats(false)}
+        />
+      )}
     </div>
   );
 }
