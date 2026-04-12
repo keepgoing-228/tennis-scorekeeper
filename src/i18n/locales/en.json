@@ -65,5 +65,17 @@
   "goToManagePlayers": "Manage Players",
   "manualInput": "Or enter names manually",
   "selectTeam": "Select team",
-  "teamFull": "Full"
+  "teamFull": "Full",
+  "whoHitIt": "Who hit it?",
+  "whoMadeError": "Who made the error?",
+  "skipAttribution": "Skip",
+  "playerStats": "Player Statistics",
+  "stats": "Stats",
+  "totalWinners": "Winners",
+  "totalErrors": "Errors",
+  "winnerErrorRatio": "W/E Ratio",
+  "fhWinners": "FH Win",
+  "bhWinners": "BH Win",
+  "fhErrors": "FH Err",
+  "bhErrors": "BH Err"
 }

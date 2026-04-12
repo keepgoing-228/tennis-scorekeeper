@@ -65,5 +65,17 @@
   "goToManagePlayers": "選手管理",
   "manualInput": "または手動で名前を入力",
   "selectTeam": "チームを選択",
-  "teamFull": "満員"
+  "teamFull": "満員",
+  "whoHitIt": "誰が打った？",
+  "whoMadeError": "誰がミスした？",
+  "skipAttribution": "スキップ",
+  "playerStats": "選手統計",
+  "stats": "統計",
+  "totalWinners": "ウィナー",
+  "totalErrors": "エラー",
+  "winnerErrorRatio": "W/E比",
+  "fhWinners": "FHウィナー",
+  "bhWinners": "BHウィナー",
+  "fhErrors": "FHエラー",
+  "bhErrors": "BHエラー"
 }

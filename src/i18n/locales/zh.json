@@ -65,5 +65,17 @@
   "goToManagePlayers": "管理球員",
   "manualInput": "或手動輸入名字",
   "selectTeam": "選擇隊伍",
-  "teamFull": "已滿"
+  "teamFull": "已滿",
+  "whoHitIt": "誰打的？",
+  "whoMadeError": "誰失誤了？",
+  "skipAttribution": "跳過",
+  "playerStats": "球員統計",
+  "stats": "統計",
+  "totalWinners": "致勝",
+  "totalErrors": "失誤",
+  "winnerErrorRatio": "致勝/失誤",
+  "fhWinners": "正手致勝",
+  "bhWinners": "反手致勝",
+  "fhErrors": "正手失誤",
+  "bhErrors": "反手失誤"
 }
